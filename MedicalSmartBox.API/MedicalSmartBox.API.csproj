@@ -28,7 +28,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Shared\" />
+      <Folder Include="Shared\Application\Patterns\" />
+      <Folder Include="Shared\Domain\" />
+      <Folder Include="Shared\Infrastructure\" />
     </ItemGroup>
 
 </Project>
