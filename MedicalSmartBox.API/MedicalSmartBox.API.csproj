@@ -27,10 +27,4 @@
         <PackageReference Include="Humanizer" Version="3.0.10"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Shared\Infrastructure\Persistence\EntityFrameworkCore\Configuration\Extensions\" />
-      <Folder Include="Shared\Infrastructure\Persistence\EntityFrameworkCore\Interceptors\" />
-      <Folder Include="Shared\Infrastructure\Persistence\EntityFrameworkCore\Repositories\" />
-    </ItemGroup>
-
 </Project>
