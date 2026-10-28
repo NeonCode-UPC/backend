@@ -28,7 +28,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="News\" />
+      <Folder Include="News\Application\Errors\" />
+      <Folder Include="News\Application\Internal\" />
+      <Folder Include="News\Application\Services\" />
+      <Folder Include="News\Domain\" />
+      <Folder Include="News\Infrastructure\" />
+      <Folder Include="News\Interfaces\" />
     </ItemGroup>
 
 </Project>
