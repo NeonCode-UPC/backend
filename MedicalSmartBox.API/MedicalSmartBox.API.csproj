@@ -27,4 +27,12 @@
         <PackageReference Include="Humanizer" Version="3.0.10"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="transport\Application\" />
+      <Folder Include="transport\Domain\" />
+      <Folder Include="transport\Infrastructure\" />
+      <Folder Include="transport\Interfaces\" />
+      <Folder Include="transport\Resources\" />
+    </ItemGroup>
+
 </Project>
