@@ -35,8 +35,7 @@ public class CriticalIncident : IAuditableEntity
         TripId = tripId;
         ContainerId = containerId;
         IncidentType = incidentType;
-        Severity = severity;
-        Status = IncidentStatus.Triggered;
+        Severity = severity; Status = IncidentStatus.Triggered;
         EscalationLevel = EscalationLevel.OperationalCabAlert;
         TriggerTemperatureCelsius = temperatureCelsius;
         TriggerBatteryPercentage = batteryPercentage;
