@@ -6,7 +6,7 @@ namespace MedicalSmartBox.API.Telemetry.Domain.Repositories;
 /// <summary>
 ///     Repository contract for TelemetryLog aggregate queries and persistence.
 /// </summary>
-public interface ITelemetryLogRepository : IBaseRepository<TelemetryLog>
+public interface ITelemetryLogRepository : IBaseRepository<TelemetryLog, int>
 {
     Task<TelemetryLog?> FindLatestByContainerIdAsync(string containerId, CancellationToken cancellationToken = default);
     Task<IEnumerable<TelemetryLog>> FindByContainerIdAsync(string containerId, CancellationToken cancellationToken = default);

@@ -10,7 +10,7 @@ namespace MedicalSmartBox.API.Telemetry.Infrastructure.Persistence.EntityFramewo
 ///     EF Core repository implementation for TelemetryLog queries and persistence.
 /// </summary>
 public class TelemetryLogRepository(AppDbContext context)
-    : BaseRepository<TelemetryLog>(context), ITelemetryLogRepository
+    : BaseRepository<TelemetryLog, int>(context), ITelemetryLogRepository
 {
     public async Task<TelemetryLog?> FindLatestByContainerIdAsync(string containerId, CancellationToken cancellationToken = default)
     {
