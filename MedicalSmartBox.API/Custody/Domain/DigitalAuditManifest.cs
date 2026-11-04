@@ -27,6 +27,7 @@ public sealed class DigitalAuditManifest
         _events = events.ToList();
         CryptographicHashSha256 = hash;
         CloudStorageUrl = cloudStorageUrl;
+        IsSealedAndImmutable = true;
     }
 
     private List<CustodyEvent> _events = [];
@@ -43,7 +44,7 @@ public sealed class DigitalAuditManifest
     public bool MinsaComplianceVerified { get; private set; }
     public string CryptographicHashSha256 { get; private set; } = string.Empty;
     public string? CloudStorageUrl { get; private set; }
-    public bool IsSealedAndImmutable => !string.IsNullOrWhiteSpace(CryptographicHashSha256);
+    public bool IsSealedAndImmutable { get; private set; }
     public IReadOnlyCollection<CustodyEvent> Events => _events.AsReadOnly();
 
     public static DigitalAuditManifest Seal(CustodyTransfer transfer, DateTimeOffset now,
