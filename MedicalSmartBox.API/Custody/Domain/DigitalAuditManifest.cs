@@ -56,29 +56,67 @@ public sealed class DigitalAuditManifest
         if (totalExcursionSeconds < 0) throw new ArgumentOutOfRangeException(nameof(totalExcursionSeconds));
 
         var events = transfer.Events.ToArray();
-        var payload = new
-        {
-            transfer.Id, transfer.TransferCode, transfer.TripId, transfer.Route, transfer.Cargo,
-            transfer.SmartBox, transfer.DepartureAt, transfer.ReceivedAt, transfer.Recipient,
-            transfer.RecipientNotes, transfer.TemperatureMax, transfer.Openings,
-            AverageTemperatureCelsius = averageTemperatureCelsius,
-            MinTemperatureCelsius = minTemperatureCelsius,
-            MaxTemperatureCelsius = transfer.TemperatureMax,
-            TotalExcursionSeconds = totalExcursionSeconds,
-            MinsaComplianceVerified = minTemperatureCelsius >= allowedMinTemperatureCelsius &&
-                                      transfer.TemperatureMax <= allowedMaxTemperatureCelsius && totalExcursionSeconds == 0,
-            Events = events,
-            GeneratedAt = now
-        };
-        var canonical = JsonSerializer.Serialize(payload);
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
-        var manifestCode = $"MAN-{now:yyyy}-MINSA-{transfer.TransferCode[^Math.Min(4, transfer.TransferCode.Length)..]}";
-        return new(Guid.NewGuid(), transfer.Id, manifestCode, now, transfer.Recipient,
+        var manifestId = Guid.NewGuid();
+        var manifestCode = $"MAN-{now:yyyy}-MINSA-{Guid.NewGuid():N}"[..25];
+        var complianceVerified = minTemperatureCelsius >= allowedMinTemperatureCelsius &&
+                                 transfer.TemperatureMax <= allowedMaxTemperatureCelsius && totalExcursionSeconds == 0;
+        var hash = ComputeHash(manifestId, manifestCode, transfer, now, averageTemperatureCelsius,
+            minTemperatureCelsius, transfer.TemperatureMax, totalExcursionSeconds, complianceVerified, events);
+        return new(manifestId, transfer.Id, manifestCode, now, transfer.Recipient,
             averageTemperatureCelsius, minTemperatureCelsius, transfer.TemperatureMax, totalExcursionSeconds,
-            payload.MinsaComplianceVerified, events, hash, cloudStorageUrl);
+            complianceVerified, events, hash, cloudStorageUrl);
     }
 
     public bool CalculateThermalCompliance(decimal allowedMinTemperatureCelsius, decimal allowedMaxTemperatureCelsius) =>
         MinTemperatureCelsius >= allowedMinTemperatureCelsius &&
         MaxTemperatureCelsius <= allowedMaxTemperatureCelsius && TotalExcursionSeconds == 0;
+
+    public bool VerifySeal(CustodyTransfer transfer)
+    {
+        if (!IsSealedAndImmutable || transfer.Id != TransferId) return false;
+        if (!_events.SequenceEqual(transfer.Events)) return false;
+        var calculated = ComputeHash(Id, ManifestCode, transfer, GeneratedAt, AverageTemperatureCelsius,
+            MinTemperatureCelsius, MaxTemperatureCelsius, TotalExcursionSeconds, MinsaComplianceVerified,
+            _events);
+        try
+        {
+            return CryptographicOperations.FixedTimeEquals(
+                Convert.FromHexString(CryptographicHashSha256), Convert.FromHexString(calculated));
+        }
+        catch (FormatException) { return false; }
+    }
+
+    private static string ComputeHash(Guid manifestId, string manifestCode, CustodyTransfer transfer,
+        DateTimeOffset generatedAt, decimal averageTemperatureCelsius, decimal minTemperatureCelsius,
+        decimal maxTemperatureCelsius, int totalExcursionSeconds, bool minsaComplianceVerified,
+        IReadOnlyCollection<CustodyEvent> events)
+    {
+        var payload = new
+        {
+            ManifestId = manifestId,
+            ManifestCode = manifestCode,
+            TransferId = transfer.Id,
+            transfer.TransferCode,
+            transfer.TripId,
+            transfer.Route,
+            transfer.Cargo,
+            transfer.SmartBox,
+            transfer.DepartureAt,
+            transfer.ReceivedAt,
+            transfer.Recipient,
+            transfer.RecipientNotes,
+            transfer.TemperatureMax,
+            transfer.Openings,
+            AverageTemperatureCelsius = averageTemperatureCelsius,
+            MinTemperatureCelsius = minTemperatureCelsius,
+            MaxTemperatureCelsius = maxTemperatureCelsius,
+            TotalExcursionSeconds = totalExcursionSeconds,
+            MinsaComplianceVerified = minsaComplianceVerified,
+            TemperatureReadings = transfer.TemperatureReadings.OrderBy(reading => reading.RecordedAt),
+            Events = events,
+            GeneratedAt = generatedAt
+        };
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload))))
+            .ToLowerInvariant();
+    }
 }
