@@ -25,6 +25,16 @@ public sealed class CustodyApplicationService(
     public Task<DigitalAuditManifest?> FindManifestAsync(string identifier, CancellationToken cancellationToken = default) =>
         repository.FindManifestByTransferAsync(identifier, cancellationToken);
 
+    public async Task<CustodyTransfer> CreateTransferAsync(CreateCustodyTransferCommand command, CancellationToken cancellationToken = default)
+    {
+        var transfer = new CustodyTransfer(Guid.NewGuid(), command.TransferCode, command.TripId,
+            command.RecipientHospitalId, command.AuthorizedRecipientUserId, command.Route, command.Cargo,
+            command.SmartBox, command.TemperatureMax, command.Openings, command.DepartureAt);
+        await repository.AddTransferAsync(transfer, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+        return transfer;
+    }
+
     public async Task<(CustodyTransfer Transfer, string? DevelopmentCode)> PrepareReceptionAsync(
         string identifier, string recipient, bool insideDestinationGeofence, CancellationToken cancellationToken = default)
     {
@@ -60,6 +70,17 @@ public sealed class CustodyApplicationService(
         return (transfer, manifest);
     }
 
+    public async Task<CustodyTransfer> RejectDeliveryAsync(string identifier, string reason, bool thermalExcursion,
+        CancellationToken cancellationToken = default)
+    {
+        var transfer = await RequireTransferAsync(identifier, cancellationToken);
+        var now = timeProvider.GetUtcNow();
+        if (thermalExcursion) transfer.RejectDeliveryDueToThermalDamage(reason, now);
+        else transfer.RejectDeliveryDueToTampering(reason, now);
+        await repository.SaveChangesAsync(cancellationToken);
+        return transfer;
+    }
+
     private async Task<CustodyTransfer> RequireTransferAsync(string identifier, CancellationToken cancellationToken) =>
         await repository.FindTransferAsync(identifier, cancellationToken)
         ?? throw new KeyNotFoundException($"Custody transfer '{identifier}' was not found.");
@@ -76,3 +97,7 @@ public sealed class CustodyApplicationService(
         return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(code))).ToLowerInvariant();
     }
 }
+
+public sealed record CreateCustodyTransferCommand(string TransferCode, Guid TripId, Guid RecipientHospitalId,
+    Guid AuthorizedRecipientUserId, string Route, string Cargo, string SmartBox, decimal TemperatureMax,
+    int Openings, DateTimeOffset DepartureAt);
