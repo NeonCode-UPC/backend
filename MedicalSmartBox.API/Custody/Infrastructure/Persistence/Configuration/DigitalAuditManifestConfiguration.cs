@@ -33,6 +33,6 @@ public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration
             .HasColumnType("json")
             .HasConversion(
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? []);
+                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>());
     }
 }
