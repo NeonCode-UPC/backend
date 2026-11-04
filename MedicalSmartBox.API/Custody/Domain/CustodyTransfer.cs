@@ -16,12 +16,14 @@ public enum CustodyStatus
 public sealed class CustodyTransfer : IAuditableEntity
 {
     private readonly List<CustodyEvent> _events = [];
+    private readonly List<CustodyTemperatureReading> _temperatureReadings = [];
 
     private CustodyTransfer() { }
 
     public CustodyTransfer(Guid id, string transferCode, Guid tripId, Guid recipientHospitalId,
         Guid authorizedRecipientUserId, string route, string cargo, string smartBox,
-        decimal temperatureMax, int openings, DateTimeOffset departureAt)
+        decimal temperatureMax, int openings, DateTimeOffset departureAt,
+        IEnumerable<CustodyTemperatureReading>? temperatureReadings = null)
     {
         if (id == Guid.Empty) throw new ArgumentException("A transfer identifier is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(transferCode)) throw new ArgumentException("A transfer code is required.", nameof(transferCode));
@@ -33,10 +35,14 @@ public sealed class CustodyTransfer : IAuditableEntity
         Route = route;
         Cargo = cargo;
         SmartBox = smartBox;
-        TemperatureMax = temperatureMax;
+        _temperatureReadings.AddRange((temperatureReadings ?? []).OrderBy(reading => reading.RecordedAt));
+        if (_temperatureReadings.Any(reading => reading.RecordedAt < departureAt))
+            throw new ArgumentException("Temperature evidence cannot precede the transfer departure.", nameof(temperatureReadings));
+        TemperatureMax = _temperatureReadings.Count > 0 ? _temperatureReadings.Max(reading => reading.TemperatureCelsius) : temperatureMax;
         Openings = openings;
         DepartureAt = departureAt;
         Status = CustodyStatus.InTransit;
+        _events.Add(new("Traslado iniciado", $"Salida registrada desde origen · {TransferCode}", departureAt));
     }
 
     public Guid Id { get; private set; }
@@ -55,9 +61,26 @@ public sealed class CustodyTransfer : IAuditableEntity
     public string? RecipientNotes { get; private set; }
     public CustodyStatus Status { get; private set; }
     public OtpToken? OtpToken { get; private set; }
+    public IReadOnlyCollection<CustodyTemperatureReading> TemperatureReadings => _temperatureReadings.AsReadOnly();
     public DateTimeOffset? CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public IReadOnlyCollection<CustodyEvent> Events => _events.AsReadOnly();
+
+    public void RecordTemperatureReadings(IEnumerable<CustodyTemperatureReading> readings)
+    {
+        EnsureOpen();
+        var incoming = readings.ToArray();
+        if (incoming.Length == 0) throw new ArgumentException("At least one temperature reading is required.", nameof(readings));
+        if (!incoming.SequenceEqual(incoming.OrderBy(reading => reading.RecordedAt)))
+            throw new ArgumentException("Temperature readings must be in chronological order.", nameof(readings));
+        var previous = _temperatureReadings.LastOrDefault()?.RecordedAt ?? DepartureAt.AddTicks(-1);
+        if (incoming.Any(reading => reading.RecordedAt <= previous || reading.RecordedAt < DepartureAt))
+            throw new ArgumentException("Temperature evidence must be later than the last recorded reading.", nameof(readings));
+
+        _temperatureReadings.AddRange(incoming);
+        TemperatureMax = Math.Max(TemperatureMax, incoming.Max(reading => reading.TemperatureCelsius));
+        _events.Add(new("Evidencia térmica registrada", $"Se adjuntaron {incoming.Length} lecturas de temperatura", incoming[^1].RecordedAt));
+    }
 
     public void PrepareReception(string recipient, string otpHash, DateTimeOffset expiresAt,
         bool insideDestinationGeofence, DateTimeOffset now)
@@ -71,7 +94,7 @@ public sealed class CustodyTransfer : IAuditableEntity
         Recipient = recipient.Trim();
         OtpToken = new OtpToken(otpHash, expiresAt);
         Status = CustodyStatus.PendingOtpVerification;
-        _events.Add(new("Reception prepared", $"OTP issued to {Recipient}", now));
+        _events.Add(new("Recepción preparada", $"Código OTP emitido para {Recipient}", now));
     }
 
     public bool VerifyOtp(string codeHash, DateTimeOffset now)
@@ -80,12 +103,12 @@ public sealed class CustodyTransfer : IAuditableEntity
             throw new InvalidOperationException("Reception has not been prepared.");
         if (!OtpToken.ValidateCode(codeHash, now))
         {
-            _events.Add(new("OTP verification failed", $"Attempt {OtpToken.CurrentAttempts} of 3", now));
+            _events.Add(new("Verificación OTP fallida", $"Intento {OtpToken.CurrentAttempts} de 3", now));
             return false;
         }
 
         Status = CustodyStatus.OtpVerifiedLidUnlocked;
-        _events.Add(new("OTP verified", "Recipient identity verified; lid unlocked", now));
+        _events.Add(new("Código OTP verificado", "Identidad del receptor verificada; tapa desbloqueada", now));
         return true;
     }
 
@@ -100,14 +123,14 @@ public sealed class CustodyTransfer : IAuditableEntity
         RecipientNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         ReceivedAt = now;
         ClearOtp();
-        _events.Add(new("Custody accepted", RecipientNotes ?? "No receiving observations", now));
+        _events.Add(new("Recepción aceptada", RecipientNotes ?? "Sin observaciones de recepción", now));
     }
 
     public void RejectDeliveryDueToThermalDamage(string reason, DateTimeOffset now) =>
-        Reject(CustodyStatus.RejectedThermalExcursion, "Delivery rejected: thermal excursion", reason, now);
+        Reject(CustodyStatus.RejectedThermalExcursion, "Entrega rechazada por excursión térmica", reason, now);
 
     public void RejectDeliveryDueToTampering(string reason, DateTimeOffset now) =>
-        Reject(CustodyStatus.RejectedTampering, "Delivery rejected: tampering", reason, now);
+        Reject(CustodyStatus.RejectedTampering, "Entrega rechazada por manipulación", reason, now);
 
     private void Reject(CustodyStatus status, string title, string reason, DateTimeOffset now)
     {
