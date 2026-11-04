@@ -5,15 +5,17 @@ namespace MedicalSmartBox.API.Custody.Application;
 
 public sealed record CustodyTransferDto(string Id, Guid TransferId, Guid TripId, string Route, string Cargo,
     string DepartureAt, string? ReceivedAt, string? Recipient, string Status, string TemperatureMax,
-    string TemperatureRange, int Openings, string SmartBox, IReadOnlyList<CustodyEventDto> Events);
+    string TemperatureRange, int Openings, string SmartBox, int OtpAttempts, int OtpMaxAttempts,
+    IReadOnlyList<CustodyEventDto> Events, IReadOnlyList<CustodyTemperatureReadingDto> TemperatureReadings);
 
 public sealed record CustodyEventDto(string Date, string Time, string Title, string Detail, string Type);
+public sealed record CustodyTemperatureReadingDto(DateTimeOffset RecordedAt, decimal TemperatureCelsius);
 
 public sealed record DigitalAuditManifestDto(string Id, Guid ManifestId, string TransferId, string SealedAt,
     string Hash, string Status, string Recipient, string TemperatureMax, int Openings, string Cargo,
     bool IsSealedAndImmutable, decimal AverageTemperatureCelsius, decimal MinTemperatureCelsius,
     decimal MaxTemperatureCelsius, int TotalExcursionSeconds, bool MinsaComplianceVerified,
-    string? CloudStorageUrl);
+    bool HashVerified, string? CloudStorageUrl);
 
 public sealed record AuditEventDto(string Id, string Date, string Time, string User, string Event, string Resource);
 
@@ -36,14 +38,17 @@ public static class CustodyContractMapper
         "2–8 °C",
         transfer.Openings,
         transfer.SmartBox,
-        transfer.Events.Select(ToDto).ToArray());
+        transfer.OtpToken?.CurrentAttempts ?? 0,
+        3,
+        transfer.Events.Select(ToDto).ToArray(),
+        transfer.TemperatureReadings.Select(reading => new CustodyTemperatureReadingDto(reading.RecordedAt, reading.TemperatureCelsius)).ToArray());
 
     public static CustodyEventDto ToDto(CustodyEvent custodyEvent)
     {
         var local = TimeZoneInfo.ConvertTime(custodyEvent.At, LimaTimeZone);
         return new(local.ToString("dd/MM/yyyy", Spanish), local.ToString("HH:mm", Spanish),
-            custodyEvent.Title, custodyEvent.Detail, custodyEvent.Title.Contains("rejected", StringComparison.OrdinalIgnoreCase) ? "warning" :
-            custodyEvent.Title.Contains("accepted", StringComparison.OrdinalIgnoreCase) ? "success" : "normal");
+            custodyEvent.Title, custodyEvent.Detail, custodyEvent.Title.Contains("rechazada", StringComparison.OrdinalIgnoreCase) ? "warning" :
+            custodyEvent.Title.Contains("aceptada", StringComparison.OrdinalIgnoreCase) ? "success" : "normal");
     }
 
     public static DigitalAuditManifestDto ToDto(DigitalAuditManifest manifest, CustodyTransfer transfer) => new(
@@ -52,7 +57,7 @@ public static class CustodyContractMapper
         transfer.TransferCode,
         FormatTimestamp(manifest.GeneratedAt),
         manifest.CryptographicHashSha256,
-        manifest.IsSealedAndImmutable ? "valid" : "invalid",
+        manifest.VerifySeal(transfer) ? "valid" : "invalid",
         manifest.Recipient,
         $"{manifest.MaxTemperatureCelsius.ToString("0.0", Spanish)} °C",
         transfer.Openings,
@@ -63,6 +68,7 @@ public static class CustodyContractMapper
         manifest.MaxTemperatureCelsius,
         manifest.TotalExcursionSeconds,
         manifest.MinsaComplianceVerified,
+        manifest.VerifySeal(transfer),
         manifest.CloudStorageUrl);
 
     public static AuditEventDto ToAuditDto(CustodyTransfer transfer, CustodyEvent custodyEvent, int index)
