@@ -34,14 +34,14 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
             .HasColumnType("json")
             .HasConversion(
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? []);
+                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>());
         entity.Property<List<CustodyTemperatureReading>>("_temperatureReadings")
             .HasField("_temperatureReadings")
             .HasColumnName("temperature_readings_json")
             .HasColumnType("json")
             .HasConversion(
                 readings => JsonSerializer.Serialize(readings, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyTemperatureReading>>(json, (JsonSerializerOptions?)null) ?? []);
+                json => JsonSerializer.Deserialize<List<CustodyTemperatureReading>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyTemperatureReading>());
 
         entity.OwnsOne(transfer => transfer.OtpToken, otp =>
         {
