@@ -56,7 +56,7 @@ public sealed class CustodyTransfer
     public bool VerifyOtp(string codeHash, DateTimeOffset now)
     {
         if (Status != CustodyStatus.PendingOtpVerification || _otpHash is null) throw new InvalidOperationException("Reception has not been prepared.");
-        if (_otpExpiresAt <= now) throw new InvalidOperationException("The OTP has expired.");
+        if (_otpExpiresAt is null || _otpExpiresAt.Value <= now) throw new InvalidOperationException("The OTP has expired.");
         if (++_otpAttempts > 3) throw new InvalidOperationException("The maximum number of OTP attempts has been reached.");
         if (!CryptographicOperations.FixedTimeEquals(Convert.FromHexString(_otpHash), Convert.FromHexString(codeHash))) return false;
         _otpVerified = true;
