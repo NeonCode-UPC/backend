@@ -28,11 +28,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="transport\Application\" />
-      <Folder Include="transport\Domain\" />
-      <Folder Include="transport\Infrastructure\" />
-      <Folder Include="transport\Interfaces\" />
-      <Folder Include="transport\Resources\" />
+      <Folder Include="Transport\Application\" />
+      <Folder Include="Transport\Domain\" />
+      <Folder Include="Transport\Infrastructure\" />
+      <Folder Include="Transport\Interfaces\" />
+      <Folder Include="Transport\Resources\" />
     </ItemGroup>
 
 </Project>
