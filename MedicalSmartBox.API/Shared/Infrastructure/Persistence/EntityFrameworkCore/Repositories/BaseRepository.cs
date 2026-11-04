@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
-public class BaseRepository<TEntity>(AppDbContext context) : IBaseRepository<TEntity> where TEntity : class
+public class BaseRepository<TEntity, TKey>(AppDbContext context) : IBaseRepository<TEntity, TKey> where TEntity : class
 {
     protected readonly AppDbContext Context = context;
     
@@ -13,9 +13,9 @@ public class BaseRepository<TEntity>(AppDbContext context) : IBaseRepository<TEn
         await Context.Set<TEntity>().AddAsync(entity, cancellationToken);
     }
 
-    public async Task<TEntity?> FindByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> FindByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
-        return await Context.Set<TEntity>().FindAsync([id], cancellationToken);
+        return await Context.Set<TEntity>().FindAsync(new object?[] { id }, cancellationToken);
     }
 
     public void Update(TEntity entity)
