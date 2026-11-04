@@ -1,5 +1,7 @@
 namespace MedicalSmartBox.API.Custody.Domain;
 
+using MedicalSmartBox.API.Shared.Domain.Model;
+
 public enum CustodyStatus
 {
     InTransit,
@@ -11,7 +13,7 @@ public enum CustodyStatus
 }
 
 /// <summary>Aggregate root enforcing the medical handover and custody audit invariants.</summary>
-public sealed class CustodyTransfer
+public sealed class CustodyTransfer : IAuditableEntity
 {
     private readonly List<CustodyEvent> _events = [];
 
@@ -53,6 +55,8 @@ public sealed class CustodyTransfer
     public string? RecipientNotes { get; private set; }
     public CustodyStatus Status { get; private set; }
     public OtpToken? OtpToken { get; private set; }
+    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
     public IReadOnlyCollection<CustodyEvent> Events => _events.AsReadOnly();
 
     public void PrepareReception(string recipient, string otpHash, DateTimeOffset expiresAt,
