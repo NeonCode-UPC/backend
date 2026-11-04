@@ -19,6 +19,9 @@ public class CriticalIncidentConfiguration : IEntityTypeConfiguration<CriticalIn
         builder.Property(incident => incident.EscalationLevel).HasConversion<string>().HasMaxLength(50).IsRequired();
         builder.Property(incident => incident.TriggerTemperatureCelsius).HasPrecision(6, 2);
         builder.Property(incident => incident.TriggerBatteryPercentage).HasPrecision(5, 2);
+        builder.Property(incident => incident.TriggeredAt).HasConversion(
+            value => value.UtcDateTime,
+            value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)));
         builder.HasIndex(incident => incident.Status);
         builder.HasIndex(incident => incident.ContainerId);
         builder.HasIndex(incident => incident.TripId);
