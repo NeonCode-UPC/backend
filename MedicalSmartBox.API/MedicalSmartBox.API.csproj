@@ -29,10 +29,21 @@
 
     <ItemGroup>
       <Folder Include="Transport\Application\Commands\" />
-      <Folder Include="Transport\Domain\" />
-      <Folder Include="Transport\Infrastructure\" />
-      <Folder Include="Transport\Interfaces\" />
-      <Folder Include="Transport\Resources\" />
+      <Folder Include="Transport\Application\Interfaces\" />
+      <Folder Include="Transport\Application\Queries\" />
+      <Folder Include="Transport\Domain\Aggregates\" />
+      <Folder Include="Transport\Domain\Entities\" />
+      <Folder Include="Transport\Domain\Enums\" />
+      <Folder Include="Transport\Domain\Repositories\" />
+      <Folder Include="Transport\Domain\ValueObjects\" />
+      <Folder Include="Transport\Infrastructure\ExternalServices\TrafficRouting\" />
+      <Folder Include="Transport\Infrastructure\Persistence\Configuration\" />
+      <Folder Include="Transport\Infrastructure\Persistence\Repositories\" />
+      <Folder Include="Transport\Interfaces\Rest\Controllers\" />
+      <Folder Include="Transport\Interfaces\Rest\Request\" />
+      <Folder Include="Transport\Interfaces\Rest\Responses\" />
+      <Folder Include="Transport\Resources\Errors\" />
+      <Folder Include="Transport\Resources\Localization\" />
     </ItemGroup>
 
 </Project>
