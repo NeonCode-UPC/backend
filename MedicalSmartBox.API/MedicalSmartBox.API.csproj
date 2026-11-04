@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Transport\Application\" />
+      <Folder Include="Transport\Application\Commands\" />
       <Folder Include="Transport\Domain\" />
       <Folder Include="Transport\Infrastructure\" />
       <Folder Include="Transport\Interfaces\" />
