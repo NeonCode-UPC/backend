@@ -19,6 +19,13 @@ public sealed class InMemoryCustodyRepository : ICustodyRepository
             [new(departure.AddMinutes(15), 4.2m), new(departure.AddMinutes(45), 4.4m), new(departure.AddMinutes(75), 4.1m)]);
         _transfers.Add(active.Id, active);
 
+        var samplesDeparture = departure.AddHours(2);
+        var samples = new CustodyTransfer(Guid.Parse("a7c262bb-2887-4fc5-9c79-8b7fca0bc833"), "TR-0398",
+            Guid.Parse("7e2e73cb-c774-47b8-a4bf-d4b275681afe"), Guid.Parse("b316e9d3-7f86-41e1-8f64-19c813c00db4"),
+            Guid.Parse("498f5e86-a65e-4891-a996-49658929c680"), "Lima → Arequipa", "Muestras", "SB-0197", 5.1m, 0, samplesDeparture,
+            [new(samplesDeparture.AddMinutes(15), 4.8m), new(samplesDeparture.AddMinutes(40), 5.1m)]);
+        _transfers.Add(samples.Id, samples);
+
         var receivedAt = timeProvider.GetUtcNow().AddDays(-1);
         var closed = new CustodyTransfer(Guid.Parse("41cf7321-3230-4e0f-8f1e-0298c62fcfd2"), "TR-0244",
             Guid.Parse("e1c58246-0dd6-4dde-b2a1-73b7cc18da4c"), Guid.Parse("83be7a50-d39a-4514-adc2-497db2c5eb59"),
@@ -34,6 +41,21 @@ public sealed class InMemoryCustodyRepository : ICustodyRepository
         var manifest = DigitalAuditManifest.Seal(closed, receivedAt, 4.8m, 4.1m, 0, 2m, 8m);
         _transfers.Add(closed.Id, closed);
         _manifests.Add(manifest.Id, manifest);
+
+        var excursionDeparture = receivedAt.AddDays(-4).AddHours(-4);
+        var excursion = new CustodyTransfer(Guid.Parse("6d5f2cd0-4405-4817-8eec-d24acec20a3c"), "TR-0233",
+            Guid.Parse("f6a2cf99-d2f7-440c-9c37-245891726fc2"), Guid.Parse("4c516c8c-9297-44ef-b977-11837de4e614"),
+            Guid.Parse("0214b47f-f26b-4535-9fc8-a1b37d714e8c"), "Lima → Ica", "Hemocomponentes", "SB-0144", 9.2m, 1, excursionDeparture,
+            [new(excursionDeparture.AddMinutes(20), 4.6m), new(excursionDeparture.AddHours(1), 9.2m)]);
+        excursion.RejectDeliveryDueToThermalDamage("Excursión térmica detectada durante el traslado.", excursionDeparture.AddHours(2));
+        _transfers.Add(excursion.Id, excursion);
+
+        var currentDeparture = timeProvider.GetUtcNow().AddHours(-3);
+        var current = new CustodyTransfer(Guid.Parse("d39bb8c6-33a7-46e7-aea0-b2bcba234c10"), "TR-0251",
+            Guid.Parse("f2569529-3916-4d8e-a363-91d2ddcc8eb2"), Guid.Parse("1c4f88d8-3171-4e22-9cd6-c38cb05c1cd6"),
+            Guid.Parse("447dd9fc-765b-4376-bcef-2ad6537a52e2"), "Lima → Trujillo", "Vacunas", "SB-0201", 5.3m, 0, currentDeparture,
+            [new(currentDeparture.AddMinutes(15), 4.9m), new(currentDeparture.AddHours(1), 5.3m)]);
+        _transfers.Add(current.Id, current);
     }
 
     public Task<IReadOnlyList<CustodyTransfer>> ListTransfersAsync(CancellationToken cancellationToken = default) =>
