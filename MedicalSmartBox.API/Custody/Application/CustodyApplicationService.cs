@@ -29,7 +29,7 @@ public sealed class CustodyApplicationService(
     {
         var transfer = new CustodyTransfer(Guid.NewGuid(), command.TransferCode, command.TripId,
             command.RecipientHospitalId, command.AuthorizedRecipientUserId, command.Route, command.Cargo,
-            command.SmartBox, command.TemperatureMax, command.Openings, command.DepartureAt);
+            command.SmartBox, command.TemperatureMax, command.Openings, command.DepartureAt, command.TemperatureReadings);
         await repository.AddTransferAsync(transfer, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return transfer;
@@ -46,6 +46,15 @@ public sealed class CustodyApplicationService(
         return (transfer, environment.IsDevelopment() ? code : null);
     }
 
+    public async Task<CustodyTransfer> RegisterTemperatureReadingsAsync(string identifier,
+        IEnumerable<CustodyTemperatureReading> readings, CancellationToken cancellationToken = default)
+    {
+        var transfer = await RequireTransferAsync(identifier, cancellationToken);
+        transfer.RecordTemperatureReadings(readings);
+        await repository.SaveChangesAsync(cancellationToken);
+        return transfer;
+    }
+
     public async Task<bool> VerifyOtpAsync(string identifier, string code, CancellationToken cancellationToken = default)
     {
         var transfer = await RequireTransferAsync(identifier, cancellationToken);
@@ -58,13 +67,17 @@ public sealed class CustodyApplicationService(
         string identifier, string? notes, bool hasUnresolvedCriticalAlerts, CancellationToken cancellationToken = default)
     {
         var transfer = await RequireTransferAsync(identifier, cancellationToken);
+        var readings = transfer.TemperatureReadings.OrderBy(reading => reading.RecordedAt).ToArray();
+        if (readings.Length == 0)
+            throw new InvalidOperationException("A traceability manifest requires timestamped temperature evidence.");
         var now = timeProvider.GetUtcNow();
         transfer.ConfirmCustodyAcceptance(notes, hasUnresolvedCriticalAlerts, now);
-
-        // The current API has no telemetry query adapter. These values preserve the
-        // available transfer snapshot until that bounded context exposes its read port.
-        var manifest = DigitalAuditManifest.Seal(transfer, now, transfer.TemperatureMax,
-            transfer.TemperatureMax, 0, 2m, 8m);
+        var excursionSeconds = readings.Zip(readings.Skip(1), (current, next) =>
+                current.TemperatureCelsius is < 2m or > 8m ? (int)(next.RecordedAt - current.RecordedAt).TotalSeconds : 0)
+            .Sum();
+        var manifest = DigitalAuditManifest.Seal(transfer, now,
+            readings.Average(reading => reading.TemperatureCelsius),
+            readings.Min(reading => reading.TemperatureCelsius), excursionSeconds, 2m, 8m);
         await repository.AddManifestAsync(manifest, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return (transfer, manifest);
@@ -100,4 +113,4 @@ public sealed class CustodyApplicationService(
 
 public sealed record CreateCustodyTransferCommand(string TransferCode, Guid TripId, Guid RecipientHospitalId,
     Guid AuthorizedRecipientUserId, string Route, string Cargo, string SmartBox, decimal TemperatureMax,
-    int Openings, DateTimeOffset DepartureAt);
+    int Openings, DateTimeOffset DepartureAt, IReadOnlyList<CustodyTemperatureReading>? TemperatureReadings = null);
