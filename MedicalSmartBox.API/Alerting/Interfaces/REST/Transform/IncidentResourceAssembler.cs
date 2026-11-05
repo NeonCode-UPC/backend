@@ -10,6 +10,9 @@ public static class IncidentResourceAssembler
         resource.TripId!.Value, resource.ContainerId!.Value, resource.IncidentType!.Value,
         resource.Severity!.Value, resource.TriggerTemperatureCelsius, resource.TriggerBatteryPercentage);
 
+    public static AcknowledgeIncidentCommand ToAcknowledgeCommand(Guid id, AcknowledgeIncidentResource resource) =>
+        new(id, resource.OperatorId!.Value);
+
     public static IncidentResource ToResource(CriticalIncident incident) => new(
         incident.Id, incident.TripId, incident.ContainerId, incident.IncidentType, incident.Severity,
         incident.Status, incident.TriggerTemperatureCelsius, incident.TriggerBatteryPercentage,
