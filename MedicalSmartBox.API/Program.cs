@@ -1,3 +1,9 @@
+using MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
+using MedicalSmartBox.API.alerting.Application.Internal.QueryServices;
+using MedicalSmartBox.API.alerting.Domain.Repositories;
+using MedicalSmartBox.API.alerting.Domain.Services;
+using MedicalSmartBox.API.alerting.Infrastructure.Persistence;
+using MedicalSmartBox.API.alerting.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using MedicalSmartBox.API.Custody.Application;
 using MedicalSmartBox.API.Custody.Domain;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence;
@@ -18,6 +24,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<CustodyApplicationService>();
+builder.Services.AddScoped<IIncidentCommandService, IncidentCommandService>();
+builder.Services.AddScoped<IIncidentQueryService, IncidentQueryService>();
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
@@ -30,10 +38,13 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
+    builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
 }
 else
 {
     builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
+    builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
+    builder.Services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
 }
 
 var app = builder.Build();
