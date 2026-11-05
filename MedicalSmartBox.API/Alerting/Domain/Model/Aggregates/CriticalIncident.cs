@@ -20,6 +20,18 @@ public class CriticalIncident : IAuditableEntity
     public DateTimeOffset? CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public void Acknowledge(Guid operatorId)
+    {
+        if (operatorId == Guid.Empty) throw new ArgumentException("Operator ID is required.", nameof(operatorId));
+        if (Status == IncidentStatus.Acknowledged) return;
+        if (Status != IncidentStatus.Triggered)
+            throw new IncidentStateException("Only triggered incidents can be acknowledged.");
+
+        Status = IncidentStatus.Acknowledged;
+        AcknowledgedAt = DateTimeOffset.UtcNow;
+        AcknowledgedByUserId = operatorId;
+    }
+
     private CriticalIncident() { }
 
     public CriticalIncident(Guid tripId, Guid containerId, IncidentType incidentType,
