@@ -1,3 +1,5 @@
+using MedicalSmartBox.API.Telemetry.Domain.Model.Commands;
+
 namespace MedicalSmartBox.API.Telemetry.Domain.Model.Aggregates;
 
 /// <summary>
