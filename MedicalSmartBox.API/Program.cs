@@ -3,6 +3,7 @@ using MedicalSmartBox.API.Custody.Domain;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence;
 using MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,12 +40,23 @@ var app = builder.Build();
 app.UseSharedApi();
 
 if (app.Environment.IsDevelopment())
+{
     app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthorization();
 app.MapControllers();
 app.MapSharedEndpoints();
+app.MapGet("/", (IHostEnvironment environment) => Results.Ok(new
+{
+    name = "MedicalSmartBox API",
+    status = "running",
+    health = "/health",
+    openApi = environment.IsDevelopment() ? "/openapi/v1.json" : null,
+    documentation = environment.IsDevelopment() ? "/scalar" : null
+}));
 
 app.Run();
