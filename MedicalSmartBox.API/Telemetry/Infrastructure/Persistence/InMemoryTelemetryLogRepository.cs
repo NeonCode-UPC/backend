@@ -1,4 +1,5 @@
 using MedicalSmartBox.API.Telemetry.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Telemetry.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Telemetry.Domain.Repositories;
 
 namespace MedicalSmartBox.API.Telemetry.Infrastructure.Persistence;
@@ -30,7 +31,7 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.0931m,
             -77.0024m,
             "ESP32-SHA256-INITIAL-01");
-        log1.Id = _nextId++;
+        log1.Id = new TelemetryLogId(_nextId++);
         log1.CreatedAt = now.AddMinutes(-30);
         _logs.Add(log1);
 
@@ -48,7 +49,7 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.0945m,
             -77.0012m,
             "ESP32-SHA256-INITIAL-02");
-        log2.Id = _nextId++;
+        log2.Id = new TelemetryLogId(_nextId++);
         log2.CreatedAt = now.AddMinutes(-10);
         _logs.Add(log2);
 
@@ -66,14 +67,14 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.1102m,
             -76.9921m,
             "ESP32-SHA256-INITIAL-03");
-        log3.Id = _nextId++;
+        log3.Id = new TelemetryLogId(_nextId++);
         log3.CreatedAt = now.AddMinutes(-5);
         _logs.Add(log3);
     }
 
     public Task AddAsync(TelemetryLog entity, CancellationToken cancellationToken = default)
     {
-        entity.Id = _nextId++;
+        entity.Id = new TelemetryLogId(_nextId++);
         entity.CreatedAt = DateTimeOffset.UtcNow;
         _logs.Add(entity);
         return Task.CompletedTask;
@@ -81,7 +82,7 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
 
     public Task<TelemetryLog?> FindByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var log = _logs.FirstOrDefault(l => l.Id == id);
+        var log = _logs.FirstOrDefault(l => l.Id.Value == id);
         return Task.FromResult(log);
     }
 
@@ -105,28 +106,28 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
         return Task.FromResult<IEnumerable<TelemetryLog>>(_logs.OrderByDescending(l => l.TimestampUtc).ToList());
     }
 
-    public Task<TelemetryLog?> FindLatestByContainerIdAsync(string containerId, CancellationToken cancellationToken = default)
+    public Task<TelemetryLog?> FindLatestByContainerIdAsync(ContainerId containerId, CancellationToken cancellationToken = default)
     {
         var log = _logs
-            .Where(l => l.ContainerId.Equals(containerId, StringComparison.OrdinalIgnoreCase))
+            .Where(l => l.ContainerId.Value.Equals(containerId.Value, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(l => l.TimestampUtc)
             .FirstOrDefault();
         return Task.FromResult(log);
     }
 
-    public Task<IEnumerable<TelemetryLog>> FindByContainerIdAsync(string containerId, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<TelemetryLog>> FindByContainerIdAsync(ContainerId containerId, CancellationToken cancellationToken = default)
     {
         var logs = _logs
-            .Where(l => l.ContainerId.Equals(containerId, StringComparison.OrdinalIgnoreCase))
+            .Where(l => l.ContainerId.Value.Equals(containerId.Value, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(l => l.TimestampUtc)
             .ToList();
         return Task.FromResult<IEnumerable<TelemetryLog>>(logs);
     }
 
-    public Task<IEnumerable<TelemetryLog>> FindByTripIdAsync(string tripId, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<TelemetryLog>> FindByTripIdAsync(TripId tripId, CancellationToken cancellationToken = default)
     {
         var logs = _logs
-            .Where(l => l.TripId != null && l.TripId.Equals(tripId, StringComparison.OrdinalIgnoreCase))
+            .Where(l => l.TripId.HasValue && l.TripId.Value.Value.Equals(tripId.Value, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(l => l.TimestampUtc)
             .ToList();
         return Task.FromResult<IEnumerable<TelemetryLog>>(logs);

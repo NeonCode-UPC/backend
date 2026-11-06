@@ -1,3 +1,4 @@
+using MedicalSmartBox.API.Telemetry.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Telemetry.Domain.Model.Commands;
 
 namespace MedicalSmartBox.API.Telemetry.Domain.Model.Aggregates;
@@ -17,7 +18,7 @@ public partial class TelemetryLog
     /// </summary>
     protected TelemetryLog()
     {
-        ContainerId = string.Empty;
+        ContainerId = new ContainerId(string.Empty);
         FirmwareSignature = string.Empty;
     }
 
@@ -75,8 +76,8 @@ public partial class TelemetryLog
         if (string.IsNullOrWhiteSpace(firmwareSignature) || firmwareSignature.Length > MaxSignatureLength)
             throw new ArgumentException($"FirmwareSignature is required and cannot exceed {MaxSignatureLength} characters.", nameof(firmwareSignature));
 
-        ContainerId = containerId.Trim();
-        TripId = string.IsNullOrWhiteSpace(tripId) ? null : tripId.Trim();
+        ContainerId = new ContainerId(containerId.Trim());
+        TripId = string.IsNullOrWhiteSpace(tripId) ? (TripId?)null : new TripId(tripId.Trim());
         TimestampUtc = DateTime.SpecifyKind(timestampUtc, DateTimeKind.Utc);
         TemperatureCelsius = temperatureCelsius;
         AmbientTemperatureCelsius = ambientTemperatureCelsius;
@@ -91,9 +92,9 @@ public partial class TelemetryLog
         IsThermalExcursion = IsExcursion(DefaultMinSafeTempCelsius, DefaultMaxSafeTempCelsius);
     }
 
-    public int Id { get; internal set; }
-    public string ContainerId { get; private set; }
-    public string? TripId { get; private set; }
+    public TelemetryLogId Id { get; internal set; }
+    public ContainerId ContainerId { get; private set; }
+    public TripId? TripId { get; private set; }
     public DateTime TimestampUtc { get; private set; }
     public decimal TemperatureCelsius { get; private set; }
     public decimal AmbientTemperatureCelsius { get; private set; }
@@ -111,7 +112,7 @@ public partial class TelemetryLog
         TemperatureCelsius < minTemp || TemperatureCelsius > maxTemp;
 
     public bool ValidateIntegrity() =>
-        !string.IsNullOrWhiteSpace(ContainerId) &&
+        !string.IsNullOrWhiteSpace(ContainerId.Value) &&
         !string.IsNullOrWhiteSpace(FirmwareSignature) &&
         FirmwareSignature.Length <= MaxSignatureLength &&
         BatteryPercentage is >= 0.00m and <= 100.00m &&

@@ -1,4 +1,5 @@
 using MedicalSmartBox.API.Telemetry.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Telemetry.Domain.Model.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,10 +15,19 @@ public class TelemetryLogConfiguration : IEntityTypeConfiguration<TelemetryLog>
         builder.ToTable("telemetry_logs");
 
         builder.HasKey(t => t.Id);
-        builder.Property(t => t.Id).ValueGeneratedOnAdd();
+        builder.Property(t => t.Id)
+            .HasConversion(id => id.Value, value => new TelemetryLogId(value))
+            .ValueGeneratedOnAdd();
 
-        builder.Property(t => t.ContainerId).IsRequired().HasMaxLength(64);
-        builder.Property(t => t.TripId).HasMaxLength(64);
+        builder.Property(t => t.ContainerId)
+            .HasConversion(id => id.Value, value => new ContainerId(value))
+            .IsRequired()
+            .HasMaxLength(64);
+
+        builder.Property(t => t.TripId)
+            .HasConversion(id => id.HasValue ? id.Value.Value : null, value => value != null ? new TripId(value) : (TripId?)null)
+            .HasMaxLength(64);
+
         builder.Property(t => t.TimestampUtc).IsRequired();
 
         builder.Property(t => t.TemperatureCelsius).HasPrecision(5, 2).IsRequired();

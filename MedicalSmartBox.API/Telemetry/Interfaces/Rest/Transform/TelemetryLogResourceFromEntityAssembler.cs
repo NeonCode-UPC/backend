@@ -11,9 +11,9 @@ public static class TelemetryLogResourceFromEntityAssembler
     public static TelemetryLogResource ToResourceFromEntity(TelemetryLog entity)
     {
         return new TelemetryLogResource(
-            entity.Id,
-            entity.ContainerId,
-            entity.TripId,
+            entity.Id.Value,
+            entity.ContainerId.Value,
+            entity.TripId?.Value,
             entity.TimestampUtc,
             entity.TemperatureCelsius,
             entity.AmbientTemperatureCelsius,

@@ -1,5 +1,6 @@
 using MedicalSmartBox.API.Shared.Domain.Repositories;
 using MedicalSmartBox.API.Telemetry.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Telemetry.Domain.Model.ValueObjects;
 
 namespace MedicalSmartBox.API.Telemetry.Domain.Repositories;
 
@@ -8,7 +9,7 @@ namespace MedicalSmartBox.API.Telemetry.Domain.Repositories;
 /// </summary>
 public interface ITelemetryLogRepository : IBaseRepository<TelemetryLog, int>
 {
-    Task<TelemetryLog?> FindLatestByContainerIdAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<TelemetryLog>> FindByContainerIdAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<TelemetryLog>> FindByTripIdAsync(string tripId, CancellationToken cancellationToken = default);
+    Task<TelemetryLog?> FindLatestByContainerIdAsync(ContainerId containerId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TelemetryLog>> FindByContainerIdAsync(ContainerId containerId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TelemetryLog>> FindByTripIdAsync(TripId tripId, CancellationToken cancellationToken = default);
 }
