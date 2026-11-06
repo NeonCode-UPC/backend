@@ -6,7 +6,9 @@ namespace MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Errors;
 /// <summary>
 /// Converts unhandled API exceptions to a stable Problem Details response without exposing internals.
 /// </summary>
-public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public sealed class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -26,7 +28,11 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        await problemDetailsService.WriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = httpContext,
+            ProblemDetails = problemDetails
+        });
         return true;
     }
 }
