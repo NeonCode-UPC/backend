@@ -91,7 +91,7 @@ public partial class TelemetryLog
         IsThermalExcursion = IsExcursion(DefaultMinSafeTempCelsius, DefaultMaxSafeTempCelsius);
     }
 
-    public int Id { get; }
+    public int Id { get; internal set; }
     public string ContainerId { get; private set; }
     public string? TripId { get; private set; }
     public DateTime TimestampUtc { get; private set; }

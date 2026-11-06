@@ -30,7 +30,7 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.0931m,
             -77.0024m,
             "ESP32-SHA256-INITIAL-01");
-        typeof(TelemetryLog).GetProperty(nameof(TelemetryLog.Id))?.SetValue(log1, _nextId++);
+        log1.Id = _nextId++;
         log1.CreatedAt = now.AddMinutes(-30);
         _logs.Add(log1);
 
@@ -48,7 +48,7 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.0945m,
             -77.0012m,
             "ESP32-SHA256-INITIAL-02");
-        typeof(TelemetryLog).GetProperty(nameof(TelemetryLog.Id))?.SetValue(log2, _nextId++);
+        log2.Id = _nextId++;
         log2.CreatedAt = now.AddMinutes(-10);
         _logs.Add(log2);
 
@@ -66,14 +66,14 @@ public class InMemoryTelemetryLogRepository : ITelemetryLogRepository
             -12.1102m,
             -76.9921m,
             "ESP32-SHA256-INITIAL-03");
-        typeof(TelemetryLog).GetProperty(nameof(TelemetryLog.Id))?.SetValue(log3, _nextId++);
+        log3.Id = _nextId++;
         log3.CreatedAt = now.AddMinutes(-5);
         _logs.Add(log3);
     }
 
     public Task AddAsync(TelemetryLog entity, CancellationToken cancellationToken = default)
     {
-        typeof(TelemetryLog).GetProperty(nameof(TelemetryLog.Id))?.SetValue(entity, _nextId++);
+        entity.Id = _nextId++;
         entity.CreatedAt = DateTimeOffset.UtcNow;
         _logs.Add(entity);
         return Task.CompletedTask;
