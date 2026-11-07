@@ -1,12 +1,13 @@
 
 using MedicalSmartBox.API.Shared.Application.Patterns;
+using MedicalSmartBox.API.Shared.Domain.Model;
 using MedicalSmartBox.API.Transport.Domain.Enums;
 using MedicalSmartBox.API.Transport.Domain.Entities;
 using MedicalSmartBox.API.Transport.Domain.ValueObjects;
 
 namespace MedicalSmartBox.API.Transport.Domain.Aggregates;
 
-public class DispatchTrip
+public class DispatchTrip : IAuditableEntity
 {
     private const double HospitalGeofenceRadiusMeters = 100.0;
 
@@ -28,6 +29,21 @@ public class DispatchTrip
     public DateTime? ActualArrivalTime { get; private set; }
 
     public GeoLocation DestinationLocation { get; private set; }
+
+    public DateTimeOffset? CreatedAt { get; private set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
+
+    DateTimeOffset? IAuditableEntity.CreatedAt
+    {
+        get => CreatedAt;
+        set => CreatedAt = value;
+    }
+
+    DateTimeOffset? IAuditableEntity.UpdatedAt
+    {
+        get => UpdatedAt;
+        set => UpdatedAt = value;
+    }
 
     public DispatchTrip(
         Guid orderId,
