@@ -1,0 +1,63 @@
+using MedicalSmartBox.API.Transport.Domain.Aggregates;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace MedicalSmartBox.API.Transport.Infrastructure.Persistence.Configuration;
+
+public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrder>
+{
+    public void Configure(EntityTypeBuilder<TransportOrder> builder)
+    {
+        builder.ToTable("transport_orders");
+
+        builder.HasKey(order => order.Id);
+
+        builder.Property(order => order.Id)
+            .IsRequired();
+
+        builder.Property(order => order.OrderCode)
+            .IsRequired();
+
+        builder.Property(order => order.OriginHospitalId)
+            .IsRequired();
+
+        builder.Property(order => order.DestinationHospitalId)
+            .IsRequired();
+
+        builder.Property(order => order.Priority)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder.Property(order => order.Status)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder.Property(order => order.CargoType)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder.Property(order => order.CargoDescription)
+            .IsRequired();
+
+        builder.Property(order => order.CreatedByUserId)
+            .IsRequired();
+
+        builder.Property(order => order.CreatedAt)
+            .IsRequired();
+
+        // IschemiaTimeLimit is an owned value object.
+        builder.OwnsOne(order => order.MaxIschemiaLimit, ischemia =>
+        {
+            ischemia.Property(limit => limit.MaxSafeHours)
+                .HasColumnName("max_safe_hours")
+                .IsRequired();
+
+            ischemia.Property(limit => limit.WarningHours)
+                .HasColumnName("warning_threshold_hours")
+                .IsRequired();
+        });
+
+        builder.Navigation(order => order.MaxIschemiaLimit)
+            .IsRequired();
+    }
+}
