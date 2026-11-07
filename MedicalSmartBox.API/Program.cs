@@ -1,3 +1,5 @@
+using MedicalSmartBox.API.Transport.Domain.Repositories;
+using MedicalSmartBox.API.Transport.Infrastructure.Persistence.Repositories;
 using MedicalSmartBox.API.Custody.Application;
 using MedicalSmartBox.API.Custody.Domain;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence;
@@ -26,15 +28,26 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy => poli
 var connectionString = builder.Configuration.GetConnectionString("MedicalSmartBox");
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
-    builder.Services.AddDbContext<AppDbContext>(options => options.UseMySQL(connectionString));
+    builder.Services.AddDbContext<AppDbContext>(
+        options => options.UseMySQL(connectionString));
+
+    // Shared
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    builder.Services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
+    builder.Services.AddScoped(
+        typeof(IBaseRepository<,>),
+        typeof(BaseRepository<,>));
+
+    // Custody
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
+
+    // Transport
+    builder.Services.AddScoped<ITransportRepository, TransportRepository>();
 }
 else
 {
     builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
 }
+
 
 var app = builder.Build();
 
