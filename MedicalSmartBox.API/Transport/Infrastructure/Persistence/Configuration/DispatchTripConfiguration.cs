@@ -1,6 +1,5 @@
 using MedicalSmartBox.API.Transport.Domain.Aggregates;
 using MedicalSmartBox.API.Transport.Domain.Entities;
-using MedicalSmartBox.API.Transport.Domain.ValueObjects; 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,14 +11,22 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
     {
         builder.ToTable("dispatch_trips");
 
+        // Primary key
         builder.HasKey(trip => trip.Id);
 
         builder.Property(trip => trip.Id)
             .IsRequired();
 
+        // Audit properties
+        builder.Property(trip => trip.CreatedAt);
+
+        builder.Property(trip => trip.UpdatedAt);
+
+        // Transport order reference
         builder.Property(trip => trip.OrderId)
             .IsRequired();
 
+        // Assigned resources
         builder.Property(trip => trip.AssignedVehiclePlate)
             .HasMaxLength(20)
             .IsRequired();
@@ -33,11 +40,13 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         builder.Property(trip => trip.AssignedParamedicUserId)
             .IsRequired();
 
+        // Trip status
         builder.Property(trip => trip.Status)
             .HasConversion<string>()
             .HasMaxLength(30)
             .IsRequired();
 
+        // Departure and arrival times
         builder.Property(trip => trip.ScheduledDepartureTime)
             .IsRequired();
 
@@ -48,7 +57,7 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
 
         builder.Property(trip => trip.ActualArrivalTime);
 
-        // Route is an owned entity stored with the trip.
+        // TransportRoute owned entity
         builder.OwnsOne<TransportRoute>("_route", route =>
         {
             route.Property(r => r.DistanceKm)
@@ -71,7 +80,7 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         builder.Navigation("_route")
             .IsRequired();
 
-        // Destination coordinates are stored with the trip.
+        // Destination location owned value object
         builder.OwnsOne(trip => trip.DestinationLocation, location =>
         {
             location.Property(loc => loc.Latitude)
