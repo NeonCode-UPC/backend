@@ -3,10 +3,10 @@ namespace MedicalSmartBox.API.Transport.Domain.Enums;
 public enum TripStatus
 {
     Scheduled,
-    ResourceAssigned,
+    ResourcesAssigned,
     PrecoolingVerified,
     InTransit,
-    ArrivedDestination,
+    ArrivedAtDestination,
     Completed,
     Cancelled
 }
