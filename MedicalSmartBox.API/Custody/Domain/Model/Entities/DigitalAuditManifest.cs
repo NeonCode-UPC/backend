@@ -1,8 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 
-namespace MedicalSmartBox.API.Custody.Domain;
+namespace MedicalSmartBox.API.Custody.Domain.Model.Entities;
 
 /// <summary>Immutable audit snapshot created when a custody transfer is finalized.</summary>
 public sealed class DigitalAuditManifest
@@ -56,7 +59,7 @@ public sealed class DigitalAuditManifest
         if (totalExcursionSeconds < 0) throw new ArgumentOutOfRangeException(nameof(totalExcursionSeconds));
 
         var events = transfer.Events.ToArray();
-        var manifestId = Guid.NewGuid();
+        var manifestId = Guid.CreateVersion7();
         var manifestCode = $"MAN-{now:yyyy}-MINSA-{Guid.NewGuid():N}"[..25];
         var complianceVerified = minTemperatureCelsius >= allowedMinTemperatureCelsius &&
                                  transfer.TemperatureMax <= allowedMaxTemperatureCelsius && totalExcursionSeconds == 0;
