@@ -4,9 +4,9 @@
 
 ## Available capabilities
 
-- `AddSharedApi()` registers RFC-style Problem Details, the global exception handler, and health checks.
+- `AddSharedApi()` registers RFC-style Problem Details, the global exception handler, health checks, and OpenAPI generation.
 - `UseSharedApi()` installs the exception handling middleware. Call it early in the HTTP pipeline.
-- `MapSharedEndpoints()` maps the liveness endpoint at `GET /health`.
+- `MapSharedEndpoints(environment)` maps API information at `GET /`, health at `GET /health`, and (only in Development) OpenAPI at `/openapi/v1.json` plus Scalar at `/scalar`.
 - `AddSharedPersistence(configuration)` configures MySQL, `AppDbContext`, `IUnitOfWork`, and the generic `IBaseRepository<TEntity, TKey>` when the `MedicalSmartBox` connection string is present. It returns `false` when no connection is configured so a development host can choose a demo adapter.
 - `AppDbContext` discovers EF Core mappings from the API assembly. Add entity mappings in the bounded context that owns those entities; do not add module references to `Shared`.
 - `IAuditableEntity` and its EF interceptor provide shared creation and update timestamps.
@@ -28,7 +28,7 @@ else
 
 var app = builder.Build();
 app.UseSharedApi();
-app.MapSharedEndpoints();
+app.MapSharedEndpoints(app.Environment);
 ```
 
 Unhandled exceptions are logged with request context and returned as a generic 500 Problem Details response containing a trace identifier. Domain validation and expected business failures should be mapped to their appropriate HTTP responses by the owning bounded context, not translated to 500s by the shared handler.
