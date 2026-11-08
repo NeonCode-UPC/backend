@@ -1,9 +1,13 @@
-using MedicalSmartBox.API.Custody.Domain;
+using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Custody.Domain.Model.Entities;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+using MedicalSmartBox.API.Custody.Domain.Repositories;
+using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Shared.Domain.Repositories;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence;
+namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
 public sealed class CustodyRepository(AppDbContext context, IUnitOfWork unitOfWork) : ICustodyRepository
 {
