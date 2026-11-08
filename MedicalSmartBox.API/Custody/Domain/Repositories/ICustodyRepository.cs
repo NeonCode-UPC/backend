@@ -1,4 +1,8 @@
-namespace MedicalSmartBox.API.Custody.Domain;
+using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Custody.Domain.Model.Entities;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+
+namespace MedicalSmartBox.API.Custody.Domain.Repositories;
 
 public interface ICustodyRepository
 {
