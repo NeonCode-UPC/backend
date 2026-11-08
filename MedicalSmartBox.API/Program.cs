@@ -1,9 +1,10 @@
-using MedicalSmartBox.API.Custody.Application;
-using MedicalSmartBox.API.Custody.Domain;
-using MedicalSmartBox.API.Custody.Infrastructure.Persistence;
+using MedicalSmartBox.API.Custody.Application.CommandServices;
+using MedicalSmartBox.API.Custody.Application.QueryServices;
+using MedicalSmartBox.API.Custody.Domain.Repositories;
+using MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using MedicalSmartBox.API.Custody.Infrastructure.Persistence.InMemory.Repositories;
 using MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +14,10 @@ if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Con
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new KebabCaseRouteNamingConvention()));
 builder.Services.AddAuthorization();
-builder.Services.AddOpenApi();
 builder.Services.AddSharedApi();
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddScoped<CustodyApplicationService>();
+builder.Services.AddScoped<CustodyCommandService>();
+builder.Services.AddScoped<CustodyQueryService>();
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
@@ -39,24 +40,10 @@ else
 var app = builder.Build();
 app.UseSharedApi();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
-
 app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthorization();
 app.MapControllers();
-app.MapSharedEndpoints();
-app.MapGet("/", (IHostEnvironment environment) => Results.Ok(new
-{
-    name = "MedicalSmartBox API",
-    status = "running",
-    health = "/health",
-    openApi = environment.IsDevelopment() ? "/openapi/v1.json" : null,
-    documentation = environment.IsDevelopment() ? "/scalar" : null
-}));
+app.MapSharedEndpoints(app.Environment);
 
 app.Run();
