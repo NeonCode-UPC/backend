@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace MedicalSmartBox.API.Custody.Domain;
+namespace MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 
 /// <summary>One-time recipient credential with a short lifetime and a three-attempt limit.</summary>
 public sealed class OtpToken
