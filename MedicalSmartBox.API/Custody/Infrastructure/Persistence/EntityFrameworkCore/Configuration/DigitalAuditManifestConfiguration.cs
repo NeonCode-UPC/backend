@@ -1,9 +1,10 @@
 using System.Text.Json;
-using MedicalSmartBox.API.Custody.Domain;
+using MedicalSmartBox.API.Custody.Domain.Model.Entities;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.Configuration;
+namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
 public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration<DigitalAuditManifest>
 {
