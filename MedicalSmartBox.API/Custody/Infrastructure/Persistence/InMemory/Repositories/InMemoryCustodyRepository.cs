@@ -1,8 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
-using MedicalSmartBox.API.Custody.Domain;
+using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Custody.Domain.Model.Entities;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
+using MedicalSmartBox.API.Custody.Domain.Repositories;
 
-namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence;
+namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.InMemory.Repositories;
 
 /// <summary>Volatile local adapter used when no MySQL connection is configured.</summary>
 public sealed class InMemoryCustodyRepository : ICustodyRepository
