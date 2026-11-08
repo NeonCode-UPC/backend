@@ -1,16 +1,8 @@
-namespace MedicalSmartBox.API.Custody.Domain;
-
 using MedicalSmartBox.API.Shared.Domain.Model;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 
-public enum CustodyStatus
-{
-    InTransit,
-    PendingOtpVerification,
-    OtpVerifiedLidUnlocked,
-    CompletedAccepted,
-    RejectedThermalExcursion,
-    RejectedTampering
-}
+namespace MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
 
 /// <summary>Aggregate root enforcing the medical handover and custody audit invariants.</summary>
 public sealed class CustodyTransfer : IAuditableEntity
@@ -155,5 +147,3 @@ public sealed class CustodyTransfer : IAuditableEntity
     }
 
 }
-
-public sealed record CustodyEvent(string Title, string Detail, DateTimeOffset At);
