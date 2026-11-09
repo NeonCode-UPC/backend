@@ -27,4 +27,10 @@
         <PackageReference Include="Humanizer" Version="3.0.10"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Update="Custody\Resources\CustodyMessages.es.resx">
+            <DependentUpon>CustodyMessages.cs</DependentUpon>
+        </EmbeddedResource>
+    </ItemGroup>
+
 </Project>
