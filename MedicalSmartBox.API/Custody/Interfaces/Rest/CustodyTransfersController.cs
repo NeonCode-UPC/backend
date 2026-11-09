@@ -9,7 +9,7 @@ namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/custody-transfers")]
-public sealed class CustodyTransfersController(CustodyCommandService commandService, CustodyQueryService queryService) : ControllerBase
+public sealed class CustodyTransfersController(ICustodyCommandService commandService, ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CustodyTransferResource>>> GetAll(CancellationToken cancellationToken) =>
