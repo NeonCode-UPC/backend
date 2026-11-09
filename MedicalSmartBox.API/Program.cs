@@ -1,5 +1,7 @@
 using MedicalSmartBox.API.Custody.Application.CommandServices;
 using MedicalSmartBox.API.Custody.Application.QueryServices;
+using MedicalSmartBox.API.Custody.Application.Internal.CommandServices;
+using MedicalSmartBox.API.Custody.Application.Internal.QueryServices;
 using MedicalSmartBox.API.Custody.Domain.Repositories;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence.InMemory.Repositories;
@@ -16,8 +18,8 @@ builder.Services.AddControllers(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddSharedApi();
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddScoped<CustodyCommandService>();
-builder.Services.AddScoped<CustodyQueryService>();
+builder.Services.AddScoped<ICustodyCommandService, CustodyCommandService>();
+builder.Services.AddScoped<ICustodyQueryService, CustodyQueryService>();
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
