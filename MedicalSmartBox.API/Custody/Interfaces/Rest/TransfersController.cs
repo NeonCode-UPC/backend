@@ -9,7 +9,7 @@ namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/transfers")]
-public sealed class TransfersController(CustodyQueryService queryService) : ControllerBase
+public sealed class TransfersController(ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet("{transferId}/audit")]
     public async Task<IActionResult> GetAudit(string transferId, CancellationToken cancellationToken)
