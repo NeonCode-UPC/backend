@@ -5,6 +5,13 @@ using MedicalSmartBox.API.Shared.Domain.Repositories;
 using MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using MedicalSmartBox.API.SmartContainers.Application.CommandServices;
+using MedicalSmartBox.API.SmartContainers.Application.Internal.CommandServices;
+using MedicalSmartBox.API.SmartContainers.Application.Internal.QueryServices;
+using MedicalSmartBox.API.SmartContainers.Application.QueryServices;
+using MedicalSmartBox.API.SmartContainers.Domain.Repositories;
+using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence;
+using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +25,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<CustodyApplicationService>();
+
+// SmartContainer Application Services
+builder.Services.AddScoped<ISmartContainerCommandService, SmartContainerCommandService>();
+builder.Services.AddScoped<ISmartContainerQueryService, SmartContainerQueryService>();
+
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
@@ -30,10 +42,13 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
+    builder.Services.AddScoped<ISmartContainerRepository, SmartContainerRepository>();
 }
 else
 {
+    builder.Services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
     builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
+    builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
 }
 
 var app = builder.Build();
