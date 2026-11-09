@@ -7,7 +7,7 @@ namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/audit-events")]
-public sealed class AuditEventsController(CustodyQueryService queryService) : ControllerBase
+public sealed class AuditEventsController(ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AuditEventResource>>> GetAll(CancellationToken cancellationToken)
