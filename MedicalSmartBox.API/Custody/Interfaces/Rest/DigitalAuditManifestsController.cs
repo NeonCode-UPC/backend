@@ -7,7 +7,7 @@ namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/digital-audit-manifests")]
-public sealed class DigitalAuditManifestsController(CustodyQueryService queryService) : ControllerBase
+public sealed class DigitalAuditManifestsController(ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<DigitalAuditManifestResource>>> GetAll(CancellationToken cancellationToken)
