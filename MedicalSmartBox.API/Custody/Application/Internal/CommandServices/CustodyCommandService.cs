@@ -5,14 +5,15 @@ using MedicalSmartBox.API.Custody.Domain.Model.Commands;
 using MedicalSmartBox.API.Custody.Domain.Model.Entities;
 using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Custody.Domain.Repositories;
+using MedicalSmartBox.API.Custody.Application.CommandServices;
 
-namespace MedicalSmartBox.API.Custody.Application.CommandServices;
+namespace MedicalSmartBox.API.Custody.Application.Internal.CommandServices;
 
 public sealed class CustodyCommandService(
     ICustodyRepository repository,
     IConfiguration configuration,
     IHostEnvironment environment,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider) : ICustodyCommandService
 {
     public async Task<CustodyTransfer> CreateTransferAsync(
         CreateCustodyTransferCommand command,
