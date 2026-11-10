@@ -15,7 +15,22 @@ public class SmartContainerQueryService(ISmartContainerRepository repository)
         GetAllSmartContainersQuery query,
         CancellationToken cancellationToken = default)
     {
-        return await repository.ListAsync(cancellationToken);
+        var containers = await repository.ListAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(query.Status))
+        {
+            containers = containers.Where(c =>
+                c.Status.ToString().Equals(query.Status.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.AmbulancePlate))
+        {
+            containers = containers.Where(c =>
+                c.AssignedAmbulancePlate != null &&
+                c.AssignedAmbulancePlate.Equals(query.AmbulancePlate.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        return containers;
     }
 
     public async Task<SmartContainer?> Handle(

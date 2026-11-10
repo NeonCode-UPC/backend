@@ -23,15 +23,19 @@ public class SmartContainersController(
     : ControllerBase
 {
     /// <summary>
-    ///     Retrieves all SmartContainer units registered in the cold chain fleet.
+    ///     Retrieves all SmartContainer units registered in the cold chain fleet with optional filtering.
     /// </summary>
     [HttpGet]
     [EndpointSummary("List all SmartContainers")]
-    [EndpointDescription("Returns the complete fleet inventory of medical isothermal boxes with battery, thermal and locking state.")]
+    [EndpointDescription("Returns fleet inventory of medical isothermal boxes with battery, thermal and locking state.")]
     [ProducesResponseType(typeof(IEnumerable<SmartContainerResource>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllContainers(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAllContainers(
+        [FromQuery] string? status,
+        [FromQuery] string? ambulancePlate,
+        CancellationToken cancellationToken)
     {
-        var containers = await queryService.Handle(new GetAllSmartContainersQuery(), cancellationToken);
+        var query = new GetAllSmartContainersQuery(status, ambulancePlate);
+        var containers = await queryService.Handle(query, cancellationToken);
         var resources = containers.Select(SmartContainerResourceFromEntityAssembler.ToResourceFromEntity);
         return Ok(resources);
     }

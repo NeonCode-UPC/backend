@@ -1,6 +1,6 @@
 namespace MedicalSmartBox.API.SmartContainers.Domain.Model.Queries;
 
 /// <summary>
-///     Query to retrieve all SmartContainer units in the fleet.
+///     Query to retrieve SmartContainer units with optional status or ambulance filtering.
 /// </summary>
-public record GetAllSmartContainersQuery;
+public record GetAllSmartContainersQuery(string? Status = null, string? AmbulancePlate = null);
