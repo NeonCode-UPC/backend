@@ -15,7 +15,16 @@ public static class SharedApiExtensions
         services.AddProblemDetails();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddHealthChecks();
-        services.AddOpenApi();
+        services.AddOpenApi(options => options.AddDocumentTransformer((document, _, _) =>
+        {
+            document.Info = new()
+            {
+                Title = "Medical SmartBox API",
+                Version = "v1",
+                Description = "API for managing cold-chain custody transfers, shipment traceability, audit events, and IoT telemetry."
+            };
+            return Task.CompletedTask;
+        }));
         return services;
     }
 
@@ -34,7 +43,7 @@ public static class SharedApiExtensions
         if (environment.IsDevelopment())
         {
             endpoints.MapOpenApi();
-            endpoints.MapScalarApiReference();
+            endpoints.MapScalarApiReference(options => options.WithTitle("Medical SmartBox API Documentation"));
         }
 
         endpoints.MapGet("/", (IHostEnvironment hostEnvironment) => Results.Ok(new
@@ -44,7 +53,12 @@ public static class SharedApiExtensions
             health = "/health",
             openApi = hostEnvironment.IsDevelopment() ? "/openapi/v1.json" : null,
             documentation = hostEnvironment.IsDevelopment() ? "/scalar" : null
-        }));
+        }))
+            .WithTags("API Overview")
+            .WithSummary("Check API status and find useful links")
+            .WithDescription("Confirms that Medical SmartBox API is running. Use /health for a health check, /scalar for interactive documentation, and /openapi/v1.json to view the API specification.")
+            .Produces(StatusCodes.Status200OK)
+            .ExcludeFromDescription();
 
         return endpoints;
     }
