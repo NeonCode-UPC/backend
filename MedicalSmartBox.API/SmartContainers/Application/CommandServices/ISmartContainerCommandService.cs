@@ -14,4 +14,5 @@ public interface ISmartContainerCommandService
     Task<Result<SmartContainer, SmartContainerError>> Handle(PairContainerToAmbulanceCommand command, CancellationToken cancellationToken = default);
     Task<Result<SmartContainer, SmartContainerError>> Handle(UnlinkContainerCommand command, CancellationToken cancellationToken = default);
     Task<Result<SmartContainer, SmartContainerError>> Handle(RecordWeightMovementCommand command, CancellationToken cancellationToken = default);
+    Task<Result<SmartContainer, SmartContainerError>> Handle(UpdateContainerTelemetrySnapshotCommand command, CancellationToken cancellationToken = default);
 }

@@ -94,4 +94,26 @@ public class SmartContainerCommandService(
 
         return new Result<SmartContainer, SmartContainerError>.Success(container);
     }
+
+    public async Task<Result<SmartContainer, SmartContainerError>> Handle(
+        UpdateContainerTelemetrySnapshotCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var container = await repository.FindByIdAsync(command.ContainerId.Value, cancellationToken);
+        if (container is null)
+            return new Result<SmartContainer, SmartContainerError>.Failure(SmartContainerError.NotFound);
+
+        container.UpdateTelemetry(
+            command.TemperatureCelsius,
+            command.BatteryPercentage,
+            command.Is12vConnected,
+            command.NetWeightGrams,
+            command.SignalQuality ?? "strong",
+            command.TimestampUtc);
+
+        repository.Update(container);
+        await unitOfWork.CompleteAsync(cancellationToken);
+
+        return new Result<SmartContainer, SmartContainerError>.Success(container);
+    }
 }

@@ -149,6 +149,32 @@ public class SmartContainersController(
     }
 
     /// <summary>
+    ///     Synchronizes real-time IoT telemetry snapshot readings into the SmartContainer.
+    /// </summary>
+    [HttpPost("{id:int}/telemetry-snapshot")]
+    [EndpointSummary("Record telemetry snapshot on container")]
+    [EndpointDescription("Applies live temperature, battery percentage, power feed and weight updates to the aggregate.")]
+    [ProducesResponseType(typeof(SmartContainerResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RecordTelemetrySnapshot(
+        [FromRoute] int id,
+        [FromBody] UpdateContainerTelemetrySnapshotResource resource,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateContainerTelemetrySnapshotCommand(
+            new ContainerId(id),
+            resource.TemperatureCelsius,
+            resource.BatteryPercentage,
+            resource.Is12vConnected,
+            resource.NetWeightGrams,
+            resource.SignalQuality ?? "strong",
+            resource.TimestampUtc ?? DateTimeOffset.UtcNow);
+
+        var result = await commandService.Handle(command, cancellationToken);
+        return SmartContainerActionResultAssembler.ToActionResult(result, this);
+    }
+
+    /// <summary>
     ///     Updates container assignment or parameters directly from frontend REST calls.
     /// </summary>
     [HttpPut("{id:int}")]
