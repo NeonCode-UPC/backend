@@ -4,18 +4,28 @@ using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Custody.Interfaces.Rest.Resources;
 using MedicalSmartBox.API.Custody.Interfaces.Rest.Transform;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mime;
 
 namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/custody-transfers")]
+[Produces(MediaTypeNames.Application.Json)]
+[Tags("Custody Transfers")]
 public sealed class CustodyTransfersController(ICustodyCommandService commandService, ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet]
+    [EndpointSummary("Get custody transfers")]
+    [EndpointDescription("Retrieves all custody transfers, including their current status, participants, temperature readings, and recorded events.")]
+    [ProducesResponseType(typeof(IReadOnlyList<CustodyTransferResource>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<CustodyTransferResource>>> GetAll(CancellationToken cancellationToken) =>
         Ok((await queryService.ListTransfersAsync(cancellationToken)).Select(CustodyResourceFromEntityAssembler.ToResourceFromEntity));
 
     [HttpGet("{identifier}")]
+    [EndpointSummary("Get a custody transfer by ID")]
+    [EndpointDescription("Retrieves the custody transfer identified by its transfer code.")]
+    [ProducesResponseType(typeof(CustodyTransferResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CustodyTransferResource>> GetById(string identifier, CancellationToken cancellationToken)
     {
         var transfer = await queryService.FindTransferAsync(identifier, cancellationToken);
@@ -23,6 +33,11 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost("{identifier}/temperature-readings")]
+    [EndpointSummary("Record custody temperature readings")]
+    [EndpointDescription("Appends temperature measurements captured during the custody transfer.")]
+    [ProducesResponseType(typeof(CustodyTransferResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RegisterTemperatureReadings(string identifier, RegisterTemperatureReadingsResource request,
         CancellationToken cancellationToken)
     {
@@ -40,6 +55,10 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost]
+    [EndpointSummary("Create a custody transfer")]
+    [EndpointDescription("Creates a custody transfer with its origin, destination, shipment, and participants.")]
+    [ProducesResponseType(typeof(CustodyTransferResource), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CustodyTransferResource>> Create(CreateCustodyTransferResource request, CancellationToken cancellationToken)
     {
         try
@@ -56,6 +75,11 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost("{identifier}/reception")]
+    [EndpointSummary("Prepare custody reception")]
+    [EndpointDescription("Registers the recipient and validates the destination geofence before generating a one-time verification code.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PrepareReception(string identifier, PrepareReceptionResource request, CancellationToken cancellationToken)
     {
         try
@@ -71,6 +95,11 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost("{identifier}/otp-verifications")]
+    [EndpointSummary("Verify the custody reception code")]
+    [EndpointDescription("Checks the one-time code provided by the recipient and returns verification status and remaining attempts.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> VerifyOtp(string identifier, VerifyOtpResource request, CancellationToken cancellationToken)
     {
         try
@@ -94,6 +123,11 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost("{identifier}/acceptance")]
+    [EndpointSummary("Accept a custody transfer")]
+    [EndpointDescription("Confirms delivery after reception checks and creates the digital audit manifest for the completed transfer.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Accept(string identifier, AcceptReceptionResource request, CancellationToken cancellationToken)
     {
         try
@@ -113,10 +147,20 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
     }
 
     [HttpPost("{identifier}/rejections/thermal-excursion")]
+    [EndpointSummary("Reject a transfer for thermal excursion")]
+    [EndpointDescription("Closes the custody transfer as rejected because its temperature readings exceeded the allowed range.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public Task<IActionResult> RejectThermalExcursion(string identifier, RejectDeliveryResource request, CancellationToken cancellationToken) =>
         Reject(identifier, request, thermalExcursion: true, cancellationToken);
 
     [HttpPost("{identifier}/rejections/tampering")]
+    [EndpointSummary("Reject a transfer for tampering")]
+    [EndpointDescription("Closes the custody transfer as rejected when package tampering is reported.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public Task<IActionResult> RejectTampering(string identifier, RejectDeliveryResource request, CancellationToken cancellationToken) =>
         Reject(identifier, request, thermalExcursion: false, cancellationToken);
 
