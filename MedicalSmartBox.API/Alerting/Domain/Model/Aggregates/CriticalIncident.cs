@@ -25,7 +25,9 @@ public class CriticalIncident : IAuditableEntity
     public void Acknowledge(Guid operatorId)
     {
         if (operatorId == Guid.Empty) throw new ArgumentException("Operator ID is required.", nameof(operatorId));
-        if (Status == IncidentStatus.Acknowledged) return;
+        if (Status == IncidentStatus.Resolved)
+            throw new IncidentStateException("Resolved incidents cannot be acknowledged.");
+        if (AcknowledgedAt.HasValue) return;
         if (Status != IncidentStatus.Triggered && Status != IncidentStatus.Escalated)
             throw new IncidentStateException("Only active incidents can be acknowledged.");
 
