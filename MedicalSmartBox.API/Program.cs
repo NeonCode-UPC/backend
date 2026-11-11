@@ -1,4 +1,10 @@
 using MedicalSmartBox.API.Transport.Domain.Repositories;
+using MedicalSmartBox.API.Transport.Application.CommandServices;
+using MedicalSmartBox.API.Transport.Application.Internal.CommandServices;
+using MedicalSmartBox.API.Transport.Application.Internal.QueryServices;
+using MedicalSmartBox.API.Transport.Application.QueryServices;
+using MedicalSmartBox.API.Transport.Infrastructure.ExternalServices.TrafficRouting;
+using MedicalSmartBox.API.Transport.Infrastructure.Persistence.InMemory;
 using MedicalSmartBox.API.Transport.Infrastructure.Persistence.Repositories;
 using MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
 using MedicalSmartBox.API.alerting.Application.Internal.QueryServices;
@@ -59,6 +65,12 @@ builder.Services.AddScoped<ITelemetryLogQueryService, TelemetryLogQueryService>(
 builder.Services.AddScoped<ISmartContainerCommandService, SmartContainerCommandService>();
 builder.Services.AddScoped<ISmartContainerQueryService, SmartContainerQueryService>();
 
+// Transport Application Services
+builder.Services.AddScoped<ITransportCommandService, TransportCommandService>();
+builder.Services.AddScoped<ITransportQueryService, TransportQueryService>();
+builder.Services.AddHttpClient<ITrafficRoutingService, TomTomTrafficRoutingService>(client =>
+    client.BaseAddress = new Uri("https://api.tomtom.com/"));
+
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
@@ -81,6 +93,7 @@ else
     builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
     builder.Services.AddSingleton<ITelemetryLogRepository, InMemoryTelemetryLogRepository>();
     builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
+    builder.Services.AddSingleton<ITransportRepository, InMemoryTransportRepository>();
 }
 
 var app = builder.Build();
