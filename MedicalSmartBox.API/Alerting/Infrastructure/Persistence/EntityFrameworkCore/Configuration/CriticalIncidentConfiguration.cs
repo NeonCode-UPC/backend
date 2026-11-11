@@ -22,6 +22,9 @@ public class CriticalIncidentConfiguration : IEntityTypeConfiguration<CriticalIn
         builder.Property(incident => incident.TriggeredAt).HasConversion(
             value => value.UtcDateTime,
             value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)));
+        builder.HasOne(incident => incident.Resolution).WithOne()
+            .HasForeignKey<MedicalSmartBox.API.alerting.Domain.Model.Entities.ContingencyResolution>(resolution => resolution.IncidentId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(incident => incident.Status);
         builder.HasIndex(incident => incident.ContainerId);
         builder.HasIndex(incident => incident.TripId);

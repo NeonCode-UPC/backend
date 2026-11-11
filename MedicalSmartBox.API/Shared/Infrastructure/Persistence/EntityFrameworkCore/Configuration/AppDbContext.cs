@@ -7,7 +7,6 @@ namespace MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkC
 /// <summary>Shared EF Core context that discovers module mappings without depending on bounded contexts.</summary>
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddInterceptors(new AuditableEntityInterceptor());
