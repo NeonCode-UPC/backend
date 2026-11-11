@@ -1,4 +1,4 @@
-                               <Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -28,11 +28,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Update="Custody\Resources\CustodyMessages.es.resx">
+            <DependentUpon>CustodyMessages.cs</DependentUpon>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
       <Folder Include="Alerting\Application\" />
       <Folder Include="Alerting\Domain\Model\" />
       <Folder Include="Alerting\Domain\Repositories\" />
       <Folder Include="Alerting\Infrastructure\Interfaces\" />
       <Folder Include="Alerting\Interfaces\" />
     </ItemGroup>
-
 </Project>

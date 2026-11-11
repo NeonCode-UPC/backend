@@ -1,7 +1,10 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using MedicalSmartBox.API.Custody.Domain;
+using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
+using MedicalSmartBox.API.Custody.Domain.Model.Entities;
+using MedicalSmartBox.API.Custody.Domain.Model.Events;
+using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 
 namespace MedicalSmartBox.API.Custody.Infrastructure.Reporting;
 
