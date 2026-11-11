@@ -1,4 +1,3 @@
-using MedicalSmartBox.API.alerting.Domain.Model.Aggregates;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ namespace MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkC
 /// <summary>Shared EF Core context that discovers module mappings without depending on bounded contexts.</summary>
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<CriticalIncident> CriticalIncidents => Set<CriticalIncident>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {

@@ -10,17 +10,17 @@ public class IncidentRepository(AppDbContext context) : IIncidentRepository
 {
     public async Task AddAsync(CriticalIncident incident, CancellationToken cancellationToken = default)
     {
-        await context.CriticalIncidents.AddAsync(incident, cancellationToken);
+        await context.Set<CriticalIncident>().AddAsync(incident, cancellationToken);
     }
 
     public Task<CriticalIncident?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return context.CriticalIncidents.FirstOrDefaultAsync(incident => incident.Id == id, cancellationToken);
+        return context.Set<CriticalIncident>().FirstOrDefaultAsync(incident => incident.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<CriticalIncident>> GetActiveIncidentsAsync(CancellationToken cancellationToken = default)
     {
-        return await context.CriticalIncidents.AsNoTracking()
+        return await context.Set<CriticalIncident>().AsNoTracking()
             .Where(incident => incident.Status != IncidentStatus.Resolved)
             .OrderByDescending(incident => incident.TriggeredAt)
             .ToListAsync(cancellationToken);
