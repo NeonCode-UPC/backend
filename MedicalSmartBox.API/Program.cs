@@ -1,9 +1,5 @@
 using MedicalSmartBox.API.Transport.Domain.Repositories;
 using MedicalSmartBox.API.Transport.Infrastructure.Persistence.Repositories;
-using MedicalSmartBox.API.Custody.Application;
-using MedicalSmartBox.API.Custody.Domain;
-using MedicalSmartBox.API.Custody.Infrastructure.Persistence;
-using MedicalSmartBox.API.Shared.Domain.Repositories;
 using MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
 using MedicalSmartBox.API.alerting.Application.Internal.QueryServices;
 using MedicalSmartBox.API.alerting.Domain.Repositories;
@@ -71,18 +67,7 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy => poli
 var databaseConfigured = builder.Services.AddSharedPersistence(builder.Configuration);
 if (databaseConfigured)
 {
-    builder.Services.AddDbContext<AppDbContext>(
-        options => options.UseMySQL(connectionString));
-
-    // Shared
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    builder.Services.AddScoped(
-        typeof(IBaseRepository<,>),
-        typeof(BaseRepository<,>));
-
-    // Custody
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
-
     // Transport
     builder.Services.AddScoped<ITransportRepository, TransportRepository>();
     builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
@@ -97,7 +82,6 @@ else
     builder.Services.AddSingleton<ITelemetryLogRepository, InMemoryTelemetryLogRepository>();
     builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
 }
-
 
 var app = builder.Build();
 app.UseSharedApi();
