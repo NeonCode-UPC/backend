@@ -24,6 +24,13 @@ public class InMemoryIncidentRepository : IIncidentRepository
         return Task.FromResult(incident);
     }
 
+    public Task<IReadOnlyList<CriticalIncident>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IReadOnlyList<CriticalIncident> incidents = _incidents.Values
+            .OrderByDescending(item => item.TriggeredAt).ToArray();
+        return Task.FromResult(incidents);
+    }
     public Task<IReadOnlyList<CriticalIncident>> GetActiveIncidentsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

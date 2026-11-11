@@ -6,5 +6,6 @@ public interface IIncidentRepository
 {
     Task AddAsync(CriticalIncident incident, CancellationToken cancellationToken = default);
     Task<CriticalIncident?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CriticalIncident>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<CriticalIncident>> GetActiveIncidentsAsync(CancellationToken cancellationToken = default);
 }

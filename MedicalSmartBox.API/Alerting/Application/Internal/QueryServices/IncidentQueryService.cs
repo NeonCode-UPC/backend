@@ -9,6 +9,9 @@ public class IncidentQueryService(IIncidentRepository repository) : IIncidentQue
     public Task<CriticalIncident?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => repository.FindByIdAsync(id, cancellationToken);
 
+    public Task<IReadOnlyList<CriticalIncident>> GetAllAsync(CancellationToken cancellationToken = default)
+        => repository.GetAllAsync(cancellationToken);
+
     public Task<IReadOnlyList<CriticalIncident>> GetActiveAsync(CancellationToken cancellationToken = default)
         => repository.GetActiveIncidentsAsync(cancellationToken);
 }
