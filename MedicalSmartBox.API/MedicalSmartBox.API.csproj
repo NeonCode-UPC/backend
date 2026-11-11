@@ -28,6 +28,19 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Transport\Application\Commands\" />
+      <Folder Include="Transport\Application\Interfaces\" />
+      <Folder Include="Transport\Application\Queries\" />
+      <Folder Include="Transport\Domain\Enums\" />
+      <Folder Include="Transport\Infrastructure\ExternalServices\TrafficRouting\" />
+      <Folder Include="Transport\Interfaces\Rest\Controllers\" />
+      <Folder Include="Transport\Interfaces\Rest\Request\" />
+      <Folder Include="Transport\Interfaces\Rest\Responses\" />
+      <Folder Include="Transport\Resources\Errors\" />
+      <Folder Include="Transport\Resources\Localization\" />
+    </ItemGroup>
+
+    <ItemGroup>
         <EmbeddedResource Update="Custody\Resources\CustodyMessages.es.resx">
             <DependentUpon>CustodyMessages.cs</DependentUpon>
         </EmbeddedResource>
