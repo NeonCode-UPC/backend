@@ -8,6 +8,24 @@ namespace MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
 
 public class IncidentCommandService(IIncidentRepository repository, IUnitOfWork unitOfWork) : IIncidentCommandService
 {
+    public async Task<CriticalIncident?> ResolveAsync(ResolveIncidentCommand command, CancellationToken cancellationToken = default)
+    {
+        var incident = await repository.FindByIdAsync(command.IncidentId, cancellationToken);
+        if (incident is null) return null;
+        incident.Resolve(command.MitigationAction, command.QualitySignoffNotes,
+            command.WasThermalIntegrityRestored, command.ResolvedByUserId);
+        await unitOfWork.CompleteAsync(cancellationToken);
+        return incident;
+    }
+
+    public async Task<CriticalIncident?> EscalateAsync(EscalateIncidentCommand command, CancellationToken cancellationToken = default)
+    {
+        var incident = await repository.FindByIdAsync(command.IncidentId, cancellationToken);
+        if (incident is null) return null;
+        incident.EscalateToMedicalDirector();
+        await unitOfWork.CompleteAsync(cancellationToken);
+        return incident;
+    }
     public async Task<CriticalIncident?> AcknowledgeAsync(AcknowledgeIncidentCommand command, CancellationToken cancellationToken = default)
     {
         var incident = await repository.FindByIdAsync(command.IncidentId, cancellationToken);

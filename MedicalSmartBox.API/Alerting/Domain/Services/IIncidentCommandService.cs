@@ -5,6 +5,8 @@ namespace MedicalSmartBox.API.alerting.Domain.Services;
 
 public interface IIncidentCommandService
 {
+    Task<CriticalIncident?> ResolveAsync(ResolveIncidentCommand command, CancellationToken cancellationToken = default);
+    Task<CriticalIncident?> EscalateAsync(EscalateIncidentCommand command, CancellationToken cancellationToken = default);
     Task<CriticalIncident> CreateAsync(CreateIncidentCommand command, CancellationToken cancellationToken = default);
     Task<CriticalIncident?> AcknowledgeAsync(AcknowledgeIncidentCommand command, CancellationToken cancellationToken = default);
 }
