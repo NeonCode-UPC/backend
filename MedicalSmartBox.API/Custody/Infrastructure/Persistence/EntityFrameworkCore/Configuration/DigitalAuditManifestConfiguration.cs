@@ -28,6 +28,7 @@ public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration
         entity.Property(manifest => manifest.TotalExcursionSeconds).HasDefaultValue(0);
         entity.Property(manifest => manifest.MinsaComplianceVerified).HasColumnName("minsa_compliance_verified");
         entity.Property(manifest => manifest.GeneratedAt).HasColumnName("sealed_at");
+        entity.Ignore(manifest => manifest.Events);
         entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
