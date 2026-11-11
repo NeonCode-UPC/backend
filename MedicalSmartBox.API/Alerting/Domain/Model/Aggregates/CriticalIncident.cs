@@ -1,4 +1,5 @@
 using MedicalSmartBox.API.alerting.Domain.Model.Enums;
+using MedicalSmartBox.API.alerting.Domain.Model.Entities;
 using MedicalSmartBox.API.Shared.Domain.Model;
 
 namespace MedicalSmartBox.API.alerting.Domain.Model.Aggregates;
@@ -17,6 +18,7 @@ public class CriticalIncident : IAuditableEntity
     public DateTimeOffset TriggeredAt { get; private set; }
     public DateTimeOffset? AcknowledgedAt { get; private set; }
     public Guid? AcknowledgedByUserId { get; private set; }
+    public ContingencyResolution? Resolution { get; private set; }
     public DateTimeOffset? CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
 
@@ -24,14 +26,30 @@ public class CriticalIncident : IAuditableEntity
     {
         if (operatorId == Guid.Empty) throw new ArgumentException("Operator ID is required.", nameof(operatorId));
         if (Status == IncidentStatus.Acknowledged) return;
-        if (Status != IncidentStatus.Triggered)
-            throw new IncidentStateException("Only triggered incidents can be acknowledged.");
+        if (Status != IncidentStatus.Triggered && Status != IncidentStatus.Escalated)
+            throw new IncidentStateException("Only active incidents can be acknowledged.");
 
         Status = IncidentStatus.Acknowledged;
         AcknowledgedAt = DateTimeOffset.UtcNow;
         AcknowledgedByUserId = operatorId;
     }
 
+    public void EscalateToMedicalDirector()
+    {
+        if (Status == IncidentStatus.Resolved)
+            throw new IncidentStateException("Resolved incidents cannot be escalated.");
+        EscalationLevel = EscalationLevel.MedicalDirectorEscalation;
+        Status = IncidentStatus.Escalated;
+    }
+
+    public void Resolve(string mitigationAction, string qualitySignoffNotes, bool wasThermalIntegrityRestored, Guid resolvedByUserId)
+    {
+        if (Status == IncidentStatus.Resolved)
+            throw new IncidentStateException("Incident is already resolved.");
+        Resolution = new ContingencyResolution(Id, mitigationAction, qualitySignoffNotes,
+            wasThermalIntegrityRestored, resolvedByUserId);
+        Status = IncidentStatus.Resolved;
+    }
     private CriticalIncident() { }
 
     public CriticalIncident(Guid tripId, Guid containerId, IncidentType incidentType,
