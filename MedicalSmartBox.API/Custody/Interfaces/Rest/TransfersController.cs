@@ -4,14 +4,21 @@ using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 using MedicalSmartBox.API.Custody.Infrastructure.Reporting;
 using MedicalSmartBox.API.Custody.Interfaces.Rest.Transform;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mime;
 
 namespace MedicalSmartBox.API.Custody.Interfaces.Rest;
 
 [ApiController]
 [Route("api/v1/transfers")]
+[Produces(MediaTypeNames.Application.Json)]
+[Tags("Custody Traceability")]
 public sealed class TransfersController(ICustodyQueryService queryService) : ControllerBase
 {
     [HttpGet("{transferId}/audit")]
+    [EndpointSummary("Get the complete custody audit")]
+    [EndpointDescription("Retrieves the transfer, event history, temperature readings, audit manifest, and temperature compliance summary.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAudit(string transferId, CancellationToken cancellationToken)
     {
         var transfer = await queryService.FindTransferAsync(transferId, cancellationToken);
@@ -35,6 +42,11 @@ public sealed class TransfersController(ICustodyQueryService queryService) : Con
     }
 
     [HttpGet("{transferId}/traceability-report")]
+    [EndpointSummary("Get a custody traceability report")]
+    [EndpointDescription("Retrieves the final traceability report for a completed or rejected custody transfer.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> GetTraceabilityReport(string transferId, CancellationToken cancellationToken)
     {
         var transfer = await queryService.FindTransferAsync(transferId, cancellationToken);
@@ -54,6 +66,12 @@ public sealed class TransfersController(ICustodyQueryService queryService) : Con
     }
 
     [HttpGet("{transferId}/traceability-report/pdf")]
+    [EndpointSummary("Download a custody traceability report")]
+    [EndpointDescription("Generates and downloads the final traceability report as a PDF document.")]
+    [Produces(MediaTypeNames.Application.Pdf)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DownloadTraceabilityReport(string transferId, CancellationToken cancellationToken)
     {
         var transfer = await queryService.FindTransferAsync(transferId, cancellationToken);
