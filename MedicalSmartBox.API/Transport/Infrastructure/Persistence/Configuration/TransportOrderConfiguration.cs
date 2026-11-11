@@ -19,8 +19,15 @@ public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrd
 
         // Order information
         builder.Property(order => order.OrderCode)
-            .HasMaxLength(50)
+            .HasMaxLength(20)
             .IsRequired();
+
+        builder.HasIndex(order => order.OrderCode)
+            .IsUnique()
+            .HasDatabaseName("uq_transport_orders_code");
+
+        builder.HasIndex(order => new { order.Status, order.Priority })
+            .HasDatabaseName("idx_transport_orders_status_priority");
 
         builder.Property(order => order.OriginHospitalId)
             .IsRequired();
@@ -35,6 +42,7 @@ public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrd
 
         // Priority and status
         builder.Property(order => order.Priority)
+            .HasColumnName("clinical_priority")
             .HasConversion<string>()
             .HasMaxLength(30)
             .IsRequired();
@@ -51,7 +59,7 @@ public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrd
             .IsRequired();
 
         builder.Property(order => order.CargoDescription)
-            .HasMaxLength(500)
+            .HasMaxLength(255)
             .IsRequired();
 
         builder.Property(order => order.CreatedByUserId)
@@ -61,11 +69,13 @@ public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrd
         builder.OwnsOne(order => order.MaxIschemiaLimit, ischemia =>
         {
             ischemia.Property(limit => limit.MaxSafeHours)
-                .HasColumnName("max_safe_hours")
+                .HasColumnName("max_ischemia_hours")
+                .HasPrecision(4, 2)
                 .IsRequired();
 
-            ischemia.Property(limit => limit.WarningHours)
-                .HasColumnName("warning_threshold_hours")
+            ischemia.Property(limit => limit.WarningThresholdHours)
+                .HasColumnName("ischemia_warning_hours")
+                .HasPrecision(4, 2)
                 .IsRequired();
         });
 

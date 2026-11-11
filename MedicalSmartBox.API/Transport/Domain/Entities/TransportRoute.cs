@@ -3,47 +3,45 @@ namespace MedicalSmartBox.API.Transport.Domain.Entities;
 public class TransportRoute
 {
     public Guid Id { get; private set; }
-    public double DistanceKm { get; private set; }
+    public double DistanceKilometers { get; private set; }
     public int PlannedDurationMinutes { get; private set; }
-    public int TrafficDelayMinutes { get; private set; }
-    public string EncodedPolyline { get; private set; }
+    public int CurrentCongestionDelayMinutes { get; private set; }
+    public string PolylineCoordinates { get; private set; }
 
-    public TransportRoute(double distanceKm, int plannedDurationMinutes, string encodedPolyline)
+    private TransportRoute()
     {
-        if (distanceKm <= 0)
-            throw new ArgumentException("Distance must be greater than zero.", nameof(distanceKm));
-        
+        PolylineCoordinates = string.Empty;
+    }
+
+    public TransportRoute(double distanceKilometers, int plannedDurationMinutes, string polylineCoordinates)
+    {
+        if (!double.IsFinite(distanceKilometers) || distanceKilometers <= 0 || distanceKilometers > 9999.99
+            || Math.Round(distanceKilometers, 2) != distanceKilometers)
+            throw new ArgumentOutOfRangeException(nameof(distanceKilometers), "Distance must be greater than zero and fit the database precision.");
+
         if (plannedDurationMinutes <= 0)
-            throw new ArgumentException("Planned duration must be greater than zero.", nameof(plannedDurationMinutes));
-        
-        if (string.IsNullOrWhiteSpace(encodedPolyline))
-            throw new ArgumentException("Encoded polyline cannot be null or empty.", nameof(encodedPolyline));
+            throw new ArgumentOutOfRangeException(nameof(plannedDurationMinutes), "Planned duration must be greater than zero.");
+
+        if (string.IsNullOrWhiteSpace(polylineCoordinates))
+            throw new ArgumentException("Polyline coordinates cannot be null or empty.", nameof(polylineCoordinates));
 
         Id = Guid.NewGuid();
-        DistanceKm = distanceKm;
+        DistanceKilometers = distanceKilometers;
         PlannedDurationMinutes = plannedDurationMinutes;
-        TrafficDelayMinutes = 0; // Valor 0 predeterminado. Se puede cambiar 
-        EncodedPolyline = encodedPolyline;
+        CurrentCongestionDelayMinutes = 0;
+        PolylineCoordinates = polylineCoordinates;
     }
-    
-    public void RecalculateRoute(double newDistanceKm, int newPlannedDurationMinutes, string newEncodedPolyline)
-    {
-        if (newDistanceKm <= 0)
-            throw new ArgumentException("Distance must be greater than zero.", nameof(newDistanceKm));
-        
-        if (newPlannedDurationMinutes <= 0)
-            throw new ArgumentException("Planned duration must be greater than zero.", nameof(newPlannedDurationMinutes));
-        
-        if (string.IsNullOrWhiteSpace(newEncodedPolyline))
-            throw new ArgumentException("Encoded polyline cannot be null or empty.", nameof(newEncodedPolyline));
 
-        DistanceKm = newDistanceKm;
-        PlannedDurationMinutes = newPlannedDurationMinutes;
-        EncodedPolyline = newEncodedPolyline;
+    public void RecalculateRoute(int congestionMinutes)
+    {
+        if (congestionMinutes < 0)
+            throw new ArgumentOutOfRangeException(nameof(congestionMinutes), "Congestion delay cannot be negative.");
+
+        CurrentCongestionDelayMinutes = congestionMinutes;
     }
 
     public bool IsSeverelyDelayed()
     {
-        return TrafficDelayMinutes >= 30;
+        return CurrentCongestionDelayMinutes >= 30;
     }
 }

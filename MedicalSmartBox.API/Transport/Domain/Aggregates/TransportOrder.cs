@@ -55,6 +55,11 @@ public class TransportOrder : IAuditableEntity
         if (string.IsNullOrWhiteSpace(orderCode))
             throw new ArgumentException(
                 "Order code cannot be null or empty.", nameof(orderCode));
+        if (orderCode.Trim().Length > 20)
+            throw new ArgumentOutOfRangeException(nameof(orderCode), "Order code cannot exceed 20 characters.");
+
+        if (!Enum.IsDefined(priority) || !Enum.IsDefined(cargoType))
+            throw new ArgumentOutOfRangeException(nameof(priority), "Priority and cargo type must be valid domain values.");
 
         if (originHospitalId == Guid.Empty)
             throw new ArgumentException(
@@ -80,13 +85,13 @@ public class TransportOrder : IAuditableEntity
                 "Creator user ID is required.", nameof(createdByUserId));
 
         Id = Guid.NewGuid();
-        OrderCode = orderCode;
+        OrderCode = orderCode.Trim();
         OriginHospitalId = originHospitalId;
         DestinationHospitalId = destinationHospitalId;
         Priority = priority;
         Status = TransportOrderStatus.Pending;
         CargoType = cargoType;
-        CargoDescription = cargoDescription;
+        CargoDescription = cargoDescription.Trim();
         MaxIschemiaLimit = maxIschemiaLimit;
         CreatedByUserId = createdByUserId;
     }
@@ -102,6 +107,30 @@ public class TransportOrder : IAuditableEntity
         return estimatedHours <= MaxIschemiaLimit.MaxSafeHours;
     }
 
+    public void MarkAssigned()
+    {
+        if (Status != TransportOrderStatus.Pending)
+            throw new InvalidOperationException("Only pending orders can be assigned.");
+
+        Status = TransportOrderStatus.Assigned;
+    }
+
+    public void MarkInTransit()
+    {
+        if (Status != TransportOrderStatus.Assigned)
+            throw new InvalidOperationException("Only assigned orders can enter transit.");
+
+        Status = TransportOrderStatus.InTransit;
+    }
+
+    public void MarkCompleted()
+    {
+        if (Status != TransportOrderStatus.InTransit)
+            throw new InvalidOperationException("Only in-transit orders can be completed.");
+
+        Status = TransportOrderStatus.Completed;
+    }
+
     public void CancelOrder(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))
@@ -110,6 +139,9 @@ public class TransportOrder : IAuditableEntity
         if (Status == TransportOrderStatus.Completed)
             throw new InvalidOperationException(
                 "A completed transport order cannot be cancelled.");
+
+        if (Status == TransportOrderStatus.InTransit)
+            throw new InvalidOperationException("An in-transit transport order cannot be cancelled.");
 
         if (Status == TransportOrderStatus.Cancelled)
             throw new InvalidOperationException(

@@ -17,6 +17,8 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         builder.Property(trip => trip.Id)
             .IsRequired();
 
+        builder.Ignore(trip => trip.Route);
+
         // Audit properties
         builder.Property(trip => trip.CreatedAt);
 
@@ -26,9 +28,17 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         builder.Property(trip => trip.OrderId)
             .IsRequired();
 
+        builder.HasIndex(trip => trip.OrderId)
+            .IsUnique()
+            .HasDatabaseName("uq_dispatch_trips_order");
+        builder.HasOne<TransportOrder>()
+            .WithMany()
+            .HasForeignKey(trip => trip.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Assigned resources
         builder.Property(trip => trip.AssignedVehiclePlate)
-            .HasMaxLength(20)
+            .HasMaxLength(10)
             .IsRequired();
 
         builder.Property(trip => trip.AssignedContainerId)
@@ -60,20 +70,23 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         // TransportRoute owned entity
         builder.OwnsOne<TransportRoute>("_route", route =>
         {
-            route.Property(r => r.DistanceKm)
+            route.Ignore(entity => entity.Id);
+
+            route.Property(r => r.DistanceKilometers)
                 .HasColumnName("distance_km")
+                .HasPrecision(6, 2)
                 .IsRequired();
 
             route.Property(r => r.PlannedDurationMinutes)
                 .HasColumnName("planned_duration_minutes")
                 .IsRequired();
 
-            route.Property(r => r.TrafficDelayMinutes)
-                .HasColumnName("traffic_delay_minutes")
+            route.Property(r => r.CurrentCongestionDelayMinutes)
+                .HasColumnName("current_delay_minutes")
                 .IsRequired();
 
-            route.Property(r => r.EncodedPolyline)
-                .HasColumnName("encoded_polyline")
+            route.Property(r => r.PolylineCoordinates)
+                .HasColumnName("polyline_coordinates")
                 .HasColumnType("text");
         });
 
@@ -85,12 +98,12 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         {
             location.Property(loc => loc.Latitude)
                 .HasColumnName("destination_latitude")
-                .HasPrecision(10, 7)
+                .HasPrecision(10, 8)
                 .IsRequired();
 
             location.Property(loc => loc.Longitude)
                 .HasColumnName("destination_longitude")
-                .HasPrecision(10, 7)
+                .HasPrecision(11, 8)
                 .IsRequired();
         });
 

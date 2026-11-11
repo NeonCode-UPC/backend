@@ -12,6 +12,7 @@ public class DispatchTrip : IAuditableEntity
     private const double HospitalGeofenceRadiusMeters = 100.0;
 
     private TransportRoute _route;
+    public TransportRoute Route => _route;
 
     public Guid Id { get; private set; }
     public Guid OrderId { get; private set; }
@@ -155,9 +156,7 @@ public class DispatchTrip : IAuditableEntity
             return new Result<bool, string>.Failure(
                 "Current GPS location is required.");
 
-        double distance = CalculateDistanceInMeters(
-            loc,
-            DestinationLocation);
+        double distance = loc.DistanceToMeters(DestinationLocation);
 
         if (distance > HospitalGeofenceRadiusMeters)
             return new Result<bool, string>.Failure(
@@ -169,36 +168,19 @@ public class DispatchTrip : IAuditableEntity
         return new Result<bool, string>.Success(true);
     }
 
-    private static double CalculateDistanceInMeters(
-        GeoLocation point1,
-        GeoLocation point2)
+    public void RecalculateRoute(int congestionMinutes)
     {
-        const double earthRadiusMeters = 6371000;
+        if (Status != TripStatus.InTransit)
+            throw new InvalidOperationException("The route can only be recalculated during transit.");
 
-        double latitude1 =
-            (double)point1.Latitude * Math.PI / 180.0;
+        _route.RecalculateRoute(congestionMinutes);
+    }
 
-        double latitude2 =
-            (double)point2.Latitude * Math.PI / 180.0;
+    public void MarkCompleted()
+    {
+        if (Status != TripStatus.ArrivedAtDestination)
+            throw new InvalidOperationException("A trip can only be completed after hospital arrival.");
 
-        double deltaLatitude =
-            ((double)point2.Latitude - (double)point1.Latitude)
-            * Math.PI / 180.0;
-
-        double deltaLongitude =
-            ((double)point2.Longitude - (double)point1.Longitude)
-            * Math.PI / 180.0;
-
-        double a =
-            Math.Pow(Math.Sin(deltaLatitude / 2), 2) +
-            Math.Cos(latitude1) *
-            Math.Cos(latitude2) *
-            Math.Pow(Math.Sin(deltaLongitude / 2), 2);
-
-        double c = 2 * Math.Atan2(
-            Math.Sqrt(a),
-            Math.Sqrt(1 - a));
-
-        return earthRadiusMeters * c;
+        Status = TripStatus.Completed;
     }
 }
