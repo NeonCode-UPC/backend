@@ -45,6 +45,14 @@ public class DispatchTrip : IAuditableEntity
         set => UpdatedAt = value;
     }
 
+    // Constructor privado utilizado por Entity Framework Core.
+    private DispatchTrip()
+    {
+        _route = null!;
+        DestinationLocation = null!;
+    }
+
+    // Constructor público utilizado por la aplicación.
     public DispatchTrip(
         Guid orderId,
         DateTime scheduledDepartureTime,
@@ -137,7 +145,7 @@ public class DispatchTrip : IAuditableEntity
         EstimatedArrivalTime = newEta;
     }
 
-    public Result<bool, string> RegisterHospitalArrival(GeoLocation loc)
+    public Result<bool, string> RegisterHospitalArrival(GeoLocation? loc)
     {
         if (Status != TripStatus.InTransit)
             return new Result<bool, string>.Failure(
@@ -165,7 +173,7 @@ public class DispatchTrip : IAuditableEntity
         GeoLocation point1,
         GeoLocation point2)
     {
-        const double EarthRadiusMeters = 6371000;
+        const double earthRadiusMeters = 6371000;
 
         double latitude1 =
             (double)point1.Latitude * Math.PI / 180.0;
@@ -191,6 +199,6 @@ public class DispatchTrip : IAuditableEntity
             Math.Sqrt(a),
             Math.Sqrt(1 - a));
 
-        return EarthRadiusMeters * c;
+        return earthRadiusMeters * c;
     }
 }

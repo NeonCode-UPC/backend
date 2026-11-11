@@ -1,3 +1,4 @@
+
 using MedicalSmartBox.API.Shared.Domain.Model;
 using MedicalSmartBox.API.Transport.Domain.Enums;
 using MedicalSmartBox.API.Transport.Domain.ValueObjects;
@@ -32,6 +33,15 @@ public class TransportOrder : IAuditableEntity
         set => UpdatedAt = value;
     }
 
+    // Constructor privado utilizado por Entity Framework Core.
+    private TransportOrder()
+    {
+        OrderCode = string.Empty;
+        CargoDescription = string.Empty;
+        MaxIschemiaLimit = null!;
+    }
+
+    // Constructor público utilizado por la aplicación.
     public TransportOrder(
         string orderCode,
         Guid originHospitalId,
