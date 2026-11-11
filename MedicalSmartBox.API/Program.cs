@@ -16,6 +16,13 @@ using MedicalSmartBox.API.Telemetry.Application.QueryServices;
 using MedicalSmartBox.API.Telemetry.Domain.Repositories;
 using MedicalSmartBox.API.Telemetry.Infrastructure.Persistence;
 using MedicalSmartBox.API.Telemetry.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using MedicalSmartBox.API.SmartContainers.Application.CommandServices;
+using MedicalSmartBox.API.SmartContainers.Application.Internal.CommandServices;
+using MedicalSmartBox.API.SmartContainers.Application.Internal.QueryServices;
+using MedicalSmartBox.API.SmartContainers.Application.QueryServices;
+using MedicalSmartBox.API.SmartContainers.Domain.Repositories;
+using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence;
+using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,12 +34,19 @@ builder.Services.AddControllers(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddSharedApi();
 builder.Services.AddSingleton(TimeProvider.System);
+
+// Custody Application Services
 builder.Services.AddScoped<ICustodyCommandService, CustodyCommandService>();
 builder.Services.AddScoped<ICustodyQueryService, CustodyQueryService>();
 
 // Telemetry Application Services
 builder.Services.AddScoped<ITelemetryLogCommandService, TelemetryLogCommandService>();
 builder.Services.AddScoped<ITelemetryLogQueryService, TelemetryLogQueryService>();
+
+// SmartContainer Application Services
+builder.Services.AddScoped<ISmartContainerCommandService, SmartContainerCommandService>();
+builder.Services.AddScoped<ISmartContainerQueryService, SmartContainerQueryService>();
+
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
     .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
     .AllowAnyHeader()
@@ -43,16 +57,14 @@ if (databaseConfigured)
 {
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
     builder.Services.AddScoped<ITelemetryLogRepository, TelemetryLogRepository>();
+    builder.Services.AddScoped<ISmartContainerRepository, SmartContainerRepository>();
 }
 else
 {
-    if (!builder.Environment.IsDevelopment())
-        throw new InvalidOperationException(
-            "A MedicalSmartBox database connection must be configured outside Development.");
-
     builder.Services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
     builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
     builder.Services.AddSingleton<ITelemetryLogRepository, InMemoryTelemetryLogRepository>();
+    builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
 }
 
 var app = builder.Build();
