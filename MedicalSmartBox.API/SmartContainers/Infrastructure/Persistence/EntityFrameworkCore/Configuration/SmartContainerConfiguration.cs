@@ -76,6 +76,7 @@ public class SmartContainerConfiguration : IEntityTypeConfiguration<SmartContain
 
         builder.OwnsOne(c => c.Thresholds, nav =>
         {
+            nav.Property<ContainerId>("SmartContainerId").HasColumnName("id");
             nav.Property(t => t.MinTemperatureCelsius)
                 .HasColumnName("min_temperature_celsius")
                 .HasPrecision(4, 2)
