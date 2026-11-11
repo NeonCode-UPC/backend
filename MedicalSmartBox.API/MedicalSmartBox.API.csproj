@@ -33,4 +33,11 @@
         </EmbeddedResource>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Alerting\Application\" />
+      <Folder Include="Alerting\Domain\Model\" />
+      <Folder Include="Alerting\Domain\Repositories\" />
+      <Folder Include="Alerting\Infrastructure\Interfaces\" />
+      <Folder Include="Alerting\Interfaces\" />
+    </ItemGroup>
 </Project>

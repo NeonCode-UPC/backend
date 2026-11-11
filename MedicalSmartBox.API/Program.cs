@@ -1,3 +1,9 @@
+using MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
+using MedicalSmartBox.API.alerting.Application.Internal.QueryServices;
+using MedicalSmartBox.API.alerting.Domain.Repositories;
+using MedicalSmartBox.API.alerting.Domain.Services;
+using MedicalSmartBox.API.alerting.Infrastructure.Persistence;
+using MedicalSmartBox.API.alerting.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using MedicalSmartBox.API.Custody.Application.CommandServices;
 using MedicalSmartBox.API.Custody.Application.QueryServices;
 using MedicalSmartBox.API.Custody.Application.Internal.CommandServices;
@@ -35,6 +41,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddSharedApi();
 builder.Services.AddSingleton(TimeProvider.System);
 
+// Alerting Application Services
+builder.Services.AddScoped<IIncidentCommandService, IncidentCommandService>();
+builder.Services.AddScoped<IIncidentQueryService, IncidentQueryService>();
+
 // Custody Application Services
 builder.Services.AddScoped<ICustodyCommandService, CustodyCommandService>();
 builder.Services.AddScoped<ICustodyQueryService, CustodyQueryService>();
@@ -56,13 +66,15 @@ var databaseConfigured = builder.Services.AddSharedPersistence(builder.Configura
 if (databaseConfigured)
 {
     builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
+    builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
     builder.Services.AddScoped<ITelemetryLogRepository, TelemetryLogRepository>();
     builder.Services.AddScoped<ISmartContainerRepository, SmartContainerRepository>();
 }
 else
 {
-    builder.Services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
+    builder.Services.AddScoped<IUnitOfWork, MedicalSmartBox.API.Telemetry.Infrastructure.Persistence.InMemoryUnitOfWork>();
     builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
+    builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
     builder.Services.AddSingleton<ITelemetryLogRepository, InMemoryTelemetryLogRepository>();
     builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
 }

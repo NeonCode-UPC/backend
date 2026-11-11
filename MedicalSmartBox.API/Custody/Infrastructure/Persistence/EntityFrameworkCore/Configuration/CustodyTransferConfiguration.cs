@@ -30,6 +30,9 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
         entity.Property(transfer => transfer.ReceivedAt).HasColumnName("completed_at");
         entity.Property(transfer => transfer.CreatedAt).HasColumnName("created_at");
         entity.Property(transfer => transfer.UpdatedAt).HasColumnName("updated_at");
+        // Public read-only views expose fields stored as JSON; they are not separate entities.
+        entity.Ignore(transfer => transfer.Events);
+        entity.Ignore(transfer => transfer.TemperatureReadings);
         entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
