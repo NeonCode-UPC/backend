@@ -31,6 +31,7 @@ using MedicalSmartBox.API.SmartContainers.Application.Internal.QueryServices;
 using MedicalSmartBox.API.SmartContainers.Application.QueryServices;
 using MedicalSmartBox.API.SmartContainers.Domain.Repositories;
 using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,7 +43,9 @@ if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Con
     builder.Configuration["Custody:OtpHmacKey"] = "local-development-only-change-this-key";
 
 builder.Services.AddControllers(options =>
-    options.Conventions.Add(new KebabCaseRouteNamingConvention()));
+    options.Conventions.Add(new KebabCaseRouteNamingConvention()))
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddAuthorization();
 builder.Services.AddSharedApi();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -74,10 +77,16 @@ var allowedOrigins = string.IsNullOrWhiteSpace(configuredOrigins)
     ? new[] { "http://localhost:5173", "http://127.0.0.1:5173" }
     : configuredOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
-    .WithOrigins(allowedOrigins)
-    .AllowAnyHeader()
-    .AllowAnyMethod()));
+builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
+{
+    if (string.IsNullOrWhiteSpace(configuredOrigins))
+        policy.SetIsOriginAllowed(_ => true);
+    else
+        policy.WithOrigins(allowedOrigins);
+
+    policy.AllowAnyHeader();
+    policy.AllowAnyMethod();
+}));
 
 builder.Services.AddSharedPersistence(builder.Configuration);
 builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
