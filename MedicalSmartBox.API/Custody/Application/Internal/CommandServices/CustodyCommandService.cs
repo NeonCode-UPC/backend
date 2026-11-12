@@ -45,7 +45,9 @@ public sealed class CustodyCommandService(
         var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
         transfer.PrepareReception(recipient, HashOtp(code), now.AddMinutes(15), insideDestinationGeofence, now);
         await repository.SaveChangesAsync(cancellationToken);
-        return (transfer, environment.IsDevelopment() ? code : null);
+        var exposeCodeForTesting = environment.IsDevelopment()
+                                   || configuration.GetValue<bool>("Custody:ExposeOtpForTesting");
+        return (transfer, exposeCodeForTesting ? code : null);
     }
 
     public async Task<CustodyTransfer> RegisterTemperatureReadingsAsync(
