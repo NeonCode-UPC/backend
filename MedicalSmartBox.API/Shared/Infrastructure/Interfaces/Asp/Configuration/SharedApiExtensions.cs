@@ -1,6 +1,7 @@
 using MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 
 namespace MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
@@ -23,6 +24,9 @@ public static class SharedApiExtensions
                 Version = "v1",
                 Description = "API for managing cold-chain custody transfers, shipment traceability, audit events, and IoT telemetry."
             };
+            // Render terminates TLS at its proxy, so the app may see the internal HTTP scheme.
+            // A relative server URL keeps Scalar requests on the browser's HTTPS origin.
+            document.Servers = [new OpenApiServer { Url = "/" }];
             return Task.CompletedTask;
         }));
         return services;
