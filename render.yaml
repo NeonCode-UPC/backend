@@ -13,5 +13,7 @@ services:
         value: "true"
       - key: Custody__OtpHmacKey
         generateValue: true
+      - key: Custody__ExposeOtpForTesting
+        value: "true"
       - key: ConnectionStrings__MedicalSmartBox
         sync: false
