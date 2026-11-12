@@ -7,24 +7,18 @@
 - `AddSharedApi()` registers RFC-style Problem Details, the global exception handler, health checks, and OpenAPI generation.
 - `UseSharedApi()` installs the exception handling middleware. Call it early in the HTTP pipeline.
 - `MapSharedEndpoints(environment)` maps API information at `GET /`, health at `GET /health`, and (only in Development) OpenAPI at `/openapi/v1.json` plus Scalar at `/scalar`.
-- `AddSharedPersistence(configuration)` configures MySQL, `AppDbContext`, `IUnitOfWork`, and the generic `IBaseRepository<TEntity, TKey>` when the `MedicalSmartBox` connection string is present. It returns `false` when no connection is configured so a development host can choose a demo adapter.
+- `AddSharedPersistence(configuration)` requires the `MedicalSmartBox` connection string and configures MySQL, `AppDbContext`, `IUnitOfWork`, and the generic `IBaseRepository<TEntity, TKey>`. The connection string must be supplied through `ConnectionStrings__MedicalSmartBox`; the API does not silently switch to in-memory storage.
 - `AppDbContext` discovers EF Core mappings from the API assembly. Add entity mappings in the bounded context that owns those entities; do not add module references to `Shared`.
 - `IAuditableEntity` and its EF interceptor provide shared creation and update timestamps.
 
 ## Register a new bounded context
 
-Keep domain-specific repository and application service registrations beside the application startup composition root. When a database connection is configured, register the bounded context's repository implementation there. In Development, a bounded context may register its own in-memory adapter when `AddSharedPersistence` returns `false`. Non-development hosts must provide a database connection; the API fails fast otherwise.
+Keep domain-specific repository and application service registrations beside the application startup composition root. Register each bounded context's MySQL repository implementation there. Every host must provide a database connection; the API fails fast otherwise.
 
 ```csharp
 builder.Services.AddSharedApi();
-var databaseConfigured = builder.Services.AddSharedPersistence(builder.Configuration);
-
-if (databaseConfigured)
-    builder.Services.AddScoped<IExampleRepository, ExampleRepository>();
-else if (builder.Environment.IsDevelopment())
-    builder.Services.AddSingleton<IExampleRepository, InMemoryExampleRepository>();
-else
-    throw new InvalidOperationException("A database connection is required outside Development.");
+builder.Services.AddSharedPersistence(builder.Configuration);
+builder.Services.AddScoped<IExampleRepository, ExampleRepository>();
 
 var app = builder.Build();
 app.UseSharedApi();
