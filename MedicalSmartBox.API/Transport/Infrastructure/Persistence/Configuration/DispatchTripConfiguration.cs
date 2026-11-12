@@ -70,7 +70,13 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         // TransportRoute owned entity
         builder.OwnsOne<TransportRoute>("_route", route =>
         {
-            route.Ignore(entity => entity.Id);
+            // TransportRoute is value-like in this aggregate: its owned row shares
+            // the DispatchTrip primary key instead of creating a dispatch_trip_id column.
+            route.WithOwner().HasForeignKey("id");
+            route.HasKey("id");
+            route.Property<Guid>("id")
+                .HasColumnName("id")
+                .IsRequired();
 
             route.Property(r => r.DistanceKilometers)
                 .HasColumnName("distance_km")
@@ -96,6 +102,12 @@ public class DispatchTripConfiguration : IEntityTypeConfiguration<DispatchTrip>
         // Destination location owned value object
         builder.OwnsOne(trip => trip.DestinationLocation, location =>
         {
+            location.WithOwner().HasForeignKey("id");
+            location.HasKey("id");
+            location.Property<Guid>("id")
+                .HasColumnName("id")
+                .IsRequired();
+
             location.Property(loc => loc.Latitude)
                 .HasColumnName("destination_latitude")
                 .HasPrecision(10, 8)

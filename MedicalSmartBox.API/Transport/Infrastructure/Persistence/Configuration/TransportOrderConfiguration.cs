@@ -68,6 +68,12 @@ public class TransportOrderConfiguration : IEntityTypeConfiguration<TransportOrd
         // IschemiaTimeLimit owned value object
         builder.OwnsOne(order => order.MaxIschemiaLimit, ischemia =>
         {
+            ischemia.WithOwner().HasForeignKey("id");
+            ischemia.HasKey("id");
+            ischemia.Property<Guid>("id")
+                .HasColumnName("id")
+                .IsRequired();
+
             ischemia.Property(limit => limit.MaxSafeHours)
                 .HasColumnName("max_ischemia_hours")
                 .HasPrecision(4, 2)
