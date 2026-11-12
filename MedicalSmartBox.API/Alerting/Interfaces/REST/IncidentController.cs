@@ -9,6 +9,7 @@ namespace MedicalSmartBox.API.alerting.Interfaces.REST;
 
 [ApiController]
 [Route("api/v1/incidents")]
+[Route("api/v1/critical-incidents")]
 [Produces("application/json")]
 [Tags("Critical Incidents")]
 public class IncidentController(IIncidentCommandService commandService, IIncidentQueryService queryService) : ControllerBase
