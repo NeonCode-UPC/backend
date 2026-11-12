@@ -19,6 +19,12 @@ public sealed class CustodyCommandService(
         CreateCustodyTransferCommand command,
         CancellationToken cancellationToken = default)
     {
+        if (await repository.TransferCodeExistsAsync(command.TransferCode, cancellationToken))
+            throw new InvalidOperationException($"Custody transfer code '{command.TransferCode}' is already registered.");
+
+        if (await repository.TripHasTransferAsync(command.TripId, cancellationToken))
+            throw new InvalidOperationException($"Trip '{command.TripId}' already has a custody transfer.");
+
         var transfer = new CustodyTransfer(Guid.CreateVersion7(), command.TransferCode, command.TripId,
             command.RecipientHospitalId, command.AuthorizedRecipientUserId, command.Route, command.Cargo,
             command.SmartBox, command.TemperatureMax, command.Openings, command.DepartureAt,
