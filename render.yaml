@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: medical-smartbox-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: OpenApi__ExposeInProduction
+        value: "true"
+      - key: Custody__OtpHmacKey
+        generateValue: true
+      - key: ConnectionStrings__MedicalSmartBox
+        sync: false

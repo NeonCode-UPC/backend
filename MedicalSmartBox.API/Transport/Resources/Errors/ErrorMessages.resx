@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="RequestFailed" xml:space="preserve"><value>Transport request failed</value></data>
+  <data name="InvalidRequest" xml:space="preserve"><value>The request contains invalid transport data.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>The requested transport order or trip was not found.</value></data>
+  <data name="DuplicateOrderCode" xml:space="preserve"><value>A transport order with this code already exists.</value></data>
+  <data name="OrderAlreadyHasTrip" xml:space="preserve"><value>This transport order already has an assigned trip.</value></data>
+  <data name="IschemiaLimitExceeded" xml:space="preserve"><value>The estimated route exceeds the cargo ischemia limit.</value></data>
+  <data name="InvalidState" xml:space="preserve"><value>The operation is not allowed in the current transport state.</value></data>
+  <data name="TrafficServiceUnavailable" xml:space="preserve"><value>The live traffic routing service is unavailable.</value></data>
+</root>

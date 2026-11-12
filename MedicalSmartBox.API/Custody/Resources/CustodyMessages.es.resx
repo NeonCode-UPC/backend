@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="TransferCreatedSuccessfully" xml:space="preserve">
+    <value>La transferencia de custodia se creó correctamente.</value>
+  </data>
+  <data name="ManifestSealedSuccessfully" xml:space="preserve">
+    <value>El manifiesto digital de auditoría se selló correctamente.</value>
+  </data>
+</root>

@@ -8,6 +8,7 @@
         <Version>0.0.1</Version>
         <RootNamespace>MedicalSmartBox.API</RootNamespace>
         <AssemblyName>MedicalSmartBox.API</AssemblyName>
+        <UserSecretsId>medical-smartbox-api-2026</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,9 +16,9 @@
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13"/>
         <PackageReference Include="Scalar.AspNetCore" Version="2.18.0"/>
         <!-- Entity Framework Core related packages -->
-        <PackageReference Include="EntityFrameworkCore" Version="10.0.13"/>
-        <PackageReference Include="EntityFrameworkCore.Relational" Version="10.0.13"/>
-        <PackageReference Include="EntityFrameworkCore.Design" Version="10.0.13">
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
@@ -27,4 +28,30 @@
         <PackageReference Include="Humanizer" Version="3.0.10"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Transport\Application\Commands\" />
+      <Folder Include="Transport\Application\Interfaces\" />
+      <Folder Include="Transport\Application\Queries\" />
+      <Folder Include="Transport\Domain\Enums\" />
+      <Folder Include="Transport\Infrastructure\ExternalServices\TrafficRouting\" />
+      <Folder Include="Transport\Interfaces\Rest\Controllers\" />
+      <Folder Include="Transport\Interfaces\Rest\Request\" />
+      <Folder Include="Transport\Interfaces\Rest\Responses\" />
+      <Folder Include="Transport\Resources\Errors\" />
+      <Folder Include="Transport\Resources\Localization\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Custody\Resources\CustodyMessages.es.resx">
+            <DependentUpon>CustodyMessages.cs</DependentUpon>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Alerting\Application\" />
+      <Folder Include="Alerting\Domain\Model\" />
+      <Folder Include="Alerting\Domain\Repositories\" />
+      <Folder Include="Alerting\Infrastructure\Interfaces\" />
+      <Folder Include="Alerting\Interfaces\" />
+    </ItemGroup>
 </Project>
