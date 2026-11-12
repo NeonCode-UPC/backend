@@ -68,7 +68,11 @@ public sealed class CustodyTransfersController(ICustodyCommandService commandSer
             return CreatedAtAction(nameof(GetById), new { identifier = transfer.TransferCode },
                 CustodyResourceFromEntityAssembler.ToResourceFromEntity(transfer));
         }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(new { message = exception.Message });
+        }
+        catch (ArgumentException exception)
         {
             return BadRequest(new { message = exception.Message });
         }
