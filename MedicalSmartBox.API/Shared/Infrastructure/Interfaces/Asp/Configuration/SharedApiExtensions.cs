@@ -52,17 +52,23 @@ public static class SharedApiExtensions
             endpoints.MapScalarApiReference(options => options.WithTitle("Medical SmartBox API Documentation"));
         }
 
-        endpoints.MapGet("/", (IHostEnvironment hostEnvironment) => Results.Ok(new
+        endpoints.MapGet("/", (IHostEnvironment hostEnvironment) =>
         {
-            name = "MedicalSmartBox API",
-            status = "running",
-            health = "/health",
-            openApi = hostEnvironment.IsDevelopment() || exposeOpenApiInProduction ? "/openapi/v1.json" : null,
-            documentation = hostEnvironment.IsDevelopment() || exposeOpenApiInProduction ? "/scalar" : null
-        }))
+            if (hostEnvironment.IsDevelopment() || exposeOpenApiInProduction)
+                return Results.Redirect("/scalar");
+
+            return Results.Ok(new
+            {
+                name = "MedicalSmartBox API",
+                status = "running",
+                health = "/health",
+                openApi = (string?)null,
+                documentation = (string?)null
+            });
+        })
             .WithTags("API Overview")
-            .WithSummary("Check API status and find useful links")
-            .WithDescription("Confirms that Medical SmartBox API is running. Use /health for a health check, /scalar for interactive documentation, and /openapi/v1.json to view the API specification.")
+            .WithSummary("Open API documentation")
+            .WithDescription("Redirects to the interactive API documentation when it is enabled.")
             .Produces(StatusCodes.Status200OK)
             .ExcludeFromDescription();
 
