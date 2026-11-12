@@ -8,6 +8,7 @@
         <Version>0.0.1</Version>
         <RootNamespace>MedicalSmartBox.API</RootNamespace>
         <AssemblyName>MedicalSmartBox.API</AssemblyName>
+        <UserSecretsId>medical-smartbox-api-2026</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

@@ -36,11 +36,13 @@ public static class SharedApiExtensions
 
     public static IEndpointRouteBuilder MapSharedEndpoints(
         this IEndpointRouteBuilder endpoints,
-        IHostEnvironment environment)
+        IHostEnvironment environment,
+        bool exposeOpenApiInProduction = false)
     {
         endpoints.MapHealthChecks("/health");
 
-        if (environment.IsDevelopment())
+        var exposeOpenApi = environment.IsDevelopment() || exposeOpenApiInProduction;
+        if (exposeOpenApi)
         {
             endpoints.MapOpenApi();
             endpoints.MapScalarApiReference(options => options.WithTitle("Medical SmartBox API Documentation"));
@@ -51,8 +53,8 @@ public static class SharedApiExtensions
             name = "MedicalSmartBox API",
             status = "running",
             health = "/health",
-            openApi = hostEnvironment.IsDevelopment() ? "/openapi/v1.json" : null,
-            documentation = hostEnvironment.IsDevelopment() ? "/scalar" : null
+            openApi = hostEnvironment.IsDevelopment() || exposeOpenApiInProduction ? "/openapi/v1.json" : null,
+            documentation = hostEnvironment.IsDevelopment() || exposeOpenApiInProduction ? "/scalar" : null
         }))
             .WithTags("API Overview")
             .WithSummary("Check API status and find useful links")

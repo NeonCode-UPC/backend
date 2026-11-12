@@ -9,16 +9,16 @@ namespace MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkC
 /// </summary>
 public static class SharedPersistenceExtensions
 {
-    /// <returns>True when a database connection is configured; false when the host should use its demo adapter.</returns>
-    public static bool AddSharedPersistence(this IServiceCollection services, IConfiguration configuration)
+    public static void AddSharedPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("MedicalSmartBox");
         if (string.IsNullOrWhiteSpace(connectionString))
-            return false;
+            throw new InvalidOperationException(
+                "The MySQL connection string 'ConnectionStrings:MedicalSmartBox' is required. " +
+                "Set it with the ConnectionStrings__MedicalSmartBox environment variable.");
 
         services.AddDbContext<AppDbContext>(options => options.UseMySQL(connectionString));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
-        return true;
     }
 }

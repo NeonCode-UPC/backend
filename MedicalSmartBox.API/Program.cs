@@ -4,7 +4,6 @@ using MedicalSmartBox.API.Transport.Application.Internal.CommandServices;
 using MedicalSmartBox.API.Transport.Application.Internal.QueryServices;
 using MedicalSmartBox.API.Transport.Application.QueryServices;
 using MedicalSmartBox.API.Transport.Infrastructure.ExternalServices.TrafficRouting;
-using MedicalSmartBox.API.Transport.Infrastructure.Persistence.InMemory;
 using MedicalSmartBox.API.Transport.Infrastructure.Persistence.Repositories;
 using MedicalSmartBox.API.alerting.Application.Internal.CommandServices;
 using MedicalSmartBox.API.alerting.Application.Internal.QueryServices;
@@ -18,27 +17,26 @@ using MedicalSmartBox.API.Custody.Application.Internal.CommandServices;
 using MedicalSmartBox.API.Custody.Application.Internal.QueryServices;
 using MedicalSmartBox.API.Custody.Domain.Repositories;
 using MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
-using MedicalSmartBox.API.Custody.Infrastructure.Persistence.InMemory.Repositories;
 using MedicalSmartBox.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
-using MedicalSmartBox.API.Shared.Domain.Repositories;
-using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using MedicalSmartBox.API.Telemetry.Application.CommandServices;
 using MedicalSmartBox.API.Telemetry.Application.Internal.CommandServices;
 using MedicalSmartBox.API.Telemetry.Application.Internal.QueryServices;
 using MedicalSmartBox.API.Telemetry.Application.QueryServices;
 using MedicalSmartBox.API.Telemetry.Domain.Repositories;
-using MedicalSmartBox.API.Telemetry.Infrastructure.Persistence;
 using MedicalSmartBox.API.Telemetry.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using MedicalSmartBox.API.SmartContainers.Application.CommandServices;
 using MedicalSmartBox.API.SmartContainers.Application.Internal.CommandServices;
 using MedicalSmartBox.API.SmartContainers.Application.Internal.QueryServices;
 using MedicalSmartBox.API.SmartContainers.Application.QueryServices;
 using MedicalSmartBox.API.SmartContainers.Domain.Repositories;
-using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence;
 using MedicalSmartBox.API.SmartContainers.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (int.TryParse(builder.Configuration["PORT"], out var renderPort))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
 
 if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Configuration["Custody:OtpHmacKey"]))
     builder.Configuration["Custody:OtpHmacKey"] = "local-development-only-change-this-key";
@@ -71,38 +69,37 @@ builder.Services.AddScoped<ITransportQueryService, TransportQueryService>();
 builder.Services.AddHttpClient<ITrafficRoutingService, TomTomTrafficRoutingService>(client =>
     client.BaseAddress = new Uri("https://api.tomtom.com/"));
 
+var configuredOrigins = builder.Configuration["Cors:AllowedOrigins"];
+var allowedOrigins = string.IsNullOrWhiteSpace(configuredOrigins)
+    ? new[] { "http://localhost:5173", "http://127.0.0.1:5173" }
+    : configuredOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
-    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+    .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
-var databaseConfigured = builder.Services.AddSharedPersistence(builder.Configuration);
-if (databaseConfigured)
-{
-    builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
-    // Transport
-    builder.Services.AddScoped<ITransportRepository, TransportRepository>();
-    builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
-    builder.Services.AddScoped<ITelemetryLogRepository, TelemetryLogRepository>();
-    builder.Services.AddScoped<ISmartContainerRepository, SmartContainerRepository>();
-}
-else
-{
-    builder.Services.AddScoped<IUnitOfWork, MedicalSmartBox.API.Telemetry.Infrastructure.Persistence.InMemoryUnitOfWork>();
-    builder.Services.AddSingleton<ICustodyRepository, InMemoryCustodyRepository>();
-    builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
-    builder.Services.AddSingleton<ITelemetryLogRepository, InMemoryTelemetryLogRepository>();
-    builder.Services.AddSingleton<ISmartContainerRepository, InMemorySmartContainerRepository>();
-    builder.Services.AddSingleton<ITransportRepository, InMemoryTransportRepository>();
-}
+builder.Services.AddSharedPersistence(builder.Configuration);
+builder.Services.AddScoped<ICustodyRepository, CustodyRepository>();
+builder.Services.AddScoped<ITransportRepository, TransportRepository>();
+builder.Services.AddScoped<IIncidentRepository, IncidentRepository>();
+builder.Services.AddScoped<ITelemetryLogRepository, TelemetryLogRepository>();
+builder.Services.AddScoped<ISmartContainerRepository, SmartContainerRepository>();
 
 var app = builder.Build();
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 app.UseSharedApi();
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthorization();
 app.MapControllers();
-app.MapSharedEndpoints(app.Environment);
+app.MapSharedEndpoints(app.Environment, builder.Configuration.GetValue<bool>("OpenApi:ExposeInProduction"));
 
 app.Run();
