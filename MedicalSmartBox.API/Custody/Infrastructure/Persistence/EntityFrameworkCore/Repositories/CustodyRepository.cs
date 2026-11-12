@@ -22,6 +22,12 @@ public sealed class CustodyRepository(AppDbContext context, IUnitOfWork unitOfWo
         return await query.SingleOrDefaultAsync(transfer => transfer.TransferCode == identifier, cancellationToken);
     }
 
+    public Task<bool> TransferCodeExistsAsync(string transferCode, CancellationToken cancellationToken = default) =>
+        context.Set<CustodyTransfer>().AnyAsync(transfer => transfer.TransferCode == transferCode, cancellationToken);
+
+    public Task<bool> TripHasTransferAsync(Guid tripId, CancellationToken cancellationToken = default) =>
+        context.Set<CustodyTransfer>().AnyAsync(transfer => transfer.TripId == tripId, cancellationToken);
+
     public async Task<IReadOnlyList<DigitalAuditManifest>> ListManifestsAsync(CancellationToken cancellationToken = default) =>
         await context.Set<DigitalAuditManifest>().AsNoTracking().OrderByDescending(manifest => manifest.GeneratedAt)
             .ToListAsync(cancellationToken);

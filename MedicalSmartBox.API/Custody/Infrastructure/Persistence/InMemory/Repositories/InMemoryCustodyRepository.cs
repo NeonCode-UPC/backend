@@ -73,6 +73,13 @@ public sealed class InMemoryCustodyRepository : ICustodyRepository
         return Task.FromResult(transfer);
     }
 
+    public Task<bool> TransferCodeExistsAsync(string transferCode, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_transfers.Values.Any(transfer =>
+            transfer.TransferCode.Equals(transferCode, StringComparison.OrdinalIgnoreCase)));
+
+    public Task<bool> TripHasTransferAsync(Guid tripId, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_transfers.Values.Any(transfer => transfer.TripId == tripId));
+
     public Task<IReadOnlyList<DigitalAuditManifest>> ListManifestsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<DigitalAuditManifest>>(_manifests.Values.OrderByDescending(item => item.GeneratedAt).ToArray());
 

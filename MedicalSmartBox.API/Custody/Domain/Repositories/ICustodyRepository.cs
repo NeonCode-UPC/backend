@@ -8,6 +8,8 @@ public interface ICustodyRepository
 {
     Task<IReadOnlyList<CustodyTransfer>> ListTransfersAsync(CancellationToken cancellationToken = default);
     Task<CustodyTransfer?> FindTransferAsync(string identifier, CancellationToken cancellationToken = default);
+    Task<bool> TransferCodeExistsAsync(string transferCode, CancellationToken cancellationToken = default);
+    Task<bool> TripHasTransferAsync(Guid tripId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<DigitalAuditManifest>> ListManifestsAsync(CancellationToken cancellationToken = default);
     Task<DigitalAuditManifest?> FindManifestByTransferAsync(string identifier, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<CustodyEvent>> GetAuditEventsAsync(CancellationToken cancellationToken = default);
