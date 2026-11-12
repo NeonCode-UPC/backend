@@ -3,10 +3,12 @@ namespace MedicalSmartBox.API.Transport.Domain.ValueObjects;
 /// <summary>
 /// Represents the geographic coordinates of a transport location.
 /// </summary>
-public class GeoLocation : IEquatable<GeoLocation>
+public sealed record GeoLocation
 {
-    public decimal Latitude { get; private set; }
-    public decimal Longitude { get; private set; }
+    public decimal Latitude { get; private init; }
+    public decimal Longitude { get; private init; }
+
+    private GeoLocation() { }
 
     public GeoLocation(decimal latitude, decimal longitude)
     {
@@ -39,10 +41,4 @@ public class GeoLocation : IEquatable<GeoLocation>
         return earthRadiusMeters * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
     }
 
-    public bool Equals(GeoLocation? other) =>
-        other is not null && Latitude == other.Latitude && Longitude == other.Longitude;
-
-    public override bool Equals(object? obj) => obj is GeoLocation other && Equals(other);
-
-    public override int GetHashCode() => HashCode.Combine(Latitude, Longitude);
 }

@@ -1,12 +1,11 @@
 namespace MedicalSmartBox.API.Transport.Domain.Entities;
 
-public class TransportRoute
+public sealed record TransportRoute
 {
-    public Guid Id { get; private set; }
-    public double DistanceKilometers { get; private set; }
-    public int PlannedDurationMinutes { get; private set; }
-    public int CurrentCongestionDelayMinutes { get; private set; }
-    public string PolylineCoordinates { get; private set; }
+    public double DistanceKilometers { get; private init; }
+    public int PlannedDurationMinutes { get; private init; }
+    public int CurrentCongestionDelayMinutes { get; private init; }
+    public string PolylineCoordinates { get; private init; }
 
     private TransportRoute()
     {
@@ -25,19 +24,18 @@ public class TransportRoute
         if (string.IsNullOrWhiteSpace(polylineCoordinates))
             throw new ArgumentException("Polyline coordinates cannot be null or empty.", nameof(polylineCoordinates));
 
-        Id = Guid.NewGuid();
         DistanceKilometers = distanceKilometers;
         PlannedDurationMinutes = plannedDurationMinutes;
         CurrentCongestionDelayMinutes = 0;
         PolylineCoordinates = polylineCoordinates;
     }
 
-    public void RecalculateRoute(int congestionMinutes)
+    public TransportRoute WithCongestionDelay(int congestionMinutes)
     {
         if (congestionMinutes < 0)
             throw new ArgumentOutOfRangeException(nameof(congestionMinutes), "Congestion delay cannot be negative.");
 
-        CurrentCongestionDelayMinutes = congestionMinutes;
+        return this with { CurrentCongestionDelayMinutes = congestionMinutes };
     }
 
     public bool IsSeverelyDelayed()
