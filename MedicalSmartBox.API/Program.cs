@@ -35,6 +35,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (int.TryParse(builder.Configuration["PORT"], out var renderPort))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+
 if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Configuration["Custody:OtpHmacKey"]))
     builder.Configuration["Custody:OtpHmacKey"] = "local-development-only-change-this-key";
 
@@ -66,8 +69,13 @@ builder.Services.AddScoped<ITransportQueryService, TransportQueryService>();
 builder.Services.AddHttpClient<ITrafficRoutingService, TomTomTrafficRoutingService>(client =>
     client.BaseAddress = new Uri("https://api.tomtom.com/"));
 
+var configuredOrigins = builder.Configuration["Cors:AllowedOrigins"];
+var allowedOrigins = string.IsNullOrWhiteSpace(configuredOrigins)
+    ? new[] { "http://localhost:5173", "http://127.0.0.1:5173" }
+    : configuredOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
-    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+    .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
@@ -87,10 +95,11 @@ await using (var scope = app.Services.CreateAsyncScope())
 
 app.UseSharedApi();
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseAuthorization();
 app.MapControllers();
-app.MapSharedEndpoints(app.Environment);
+app.MapSharedEndpoints(app.Environment, builder.Configuration.GetValue<bool>("OpenApi:ExposeInProduction"));
 
 app.Run();
