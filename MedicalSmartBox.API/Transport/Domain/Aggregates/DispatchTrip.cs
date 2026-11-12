@@ -173,7 +173,7 @@ public class DispatchTrip : IAuditableEntity
         if (Status != TripStatus.InTransit)
             throw new InvalidOperationException("The route can only be recalculated during transit.");
 
-        _route.RecalculateRoute(congestionMinutes);
+        _route = _route.WithCongestionDelay(congestionMinutes);
     }
 
     public void MarkCompleted()
