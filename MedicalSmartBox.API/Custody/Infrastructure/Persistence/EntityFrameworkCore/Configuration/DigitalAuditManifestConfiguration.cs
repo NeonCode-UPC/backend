@@ -36,7 +36,7 @@ public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToList());
 
-        entity.Property<List<CustodyEvent>>("_events")
+        var eventsProperty = entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
             .HasColumnType("json")
@@ -44,5 +44,6 @@ public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
                 json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>(),
                 eventsComparer);
+        eventsProperty.Metadata.SetValueComparer(eventsComparer);
     }
 }

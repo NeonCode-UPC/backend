@@ -45,7 +45,7 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToList());
 
-        entity.Property<List<CustodyEvent>>("_events")
+        var eventsProperty = entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
             .HasColumnType("json")
@@ -53,7 +53,9 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
                 json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>(),
                 eventsComparer);
-        entity.Property<List<CustodyTemperatureReading>>("_temperatureReadings")
+        eventsProperty.Metadata.SetValueComparer(eventsComparer);
+
+        var tempProperty = entity.Property<List<CustodyTemperatureReading>>("_temperatureReadings")
             .HasField("_temperatureReadings")
             .HasColumnName("temperature_readings_json")
             .HasColumnType("json")
@@ -61,6 +63,7 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
                 readings => JsonSerializer.Serialize(readings, (JsonSerializerOptions?)null),
                 json => JsonSerializer.Deserialize<List<CustodyTemperatureReading>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyTemperatureReading>(),
                 temperatureReadingsComparer);
+        tempProperty.Metadata.SetValueComparer(temperatureReadingsComparer);
 
         entity.OwnsOne(transfer => transfer.OtpToken, otp =>
         {

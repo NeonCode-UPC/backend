@@ -1,6 +1,7 @@
 using MedicalSmartBox.API.Shared.Domain.Repositories;
 using MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 
 namespace MedicalSmartBox.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
@@ -17,8 +18,16 @@ public static class SharedPersistenceExtensions
                 "The MySQL connection string 'ConnectionStrings:MedicalSmartBox' is required. " +
                 "Set it with the ConnectionStrings__MedicalSmartBox environment variable.");
 
+        // Oracle's MySql.Data uses Windows-specific Socket.IOControl for Keepalive which throws
+        // PlatformNotSupportedException on Linux containers. Explicitly ensure Keepalive is 0.
+        var connectionStringBuilder = new MySqlConnectionStringBuilder(connectionString)
+        {
+            Keepalive = 0
+        };
+        var sanitizedConnectionString = connectionStringBuilder.ConnectionString;
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseMySQL(connectionString, mySqlOptions =>
+            options.UseMySQL(sanitizedConnectionString, mySqlOptions =>
             {
                 mySqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 5,
