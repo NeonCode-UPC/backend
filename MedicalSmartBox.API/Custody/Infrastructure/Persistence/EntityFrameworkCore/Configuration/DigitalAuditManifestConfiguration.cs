@@ -2,6 +2,7 @@ using System.Text.Json;
 using MedicalSmartBox.API.Custody.Domain.Model.Entities;
 using MedicalSmartBox.API.Custody.Domain.Model.Events;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
@@ -29,12 +30,19 @@ public sealed class DigitalAuditManifestConfiguration : IEntityTypeConfiguration
         entity.Property(manifest => manifest.MinsaComplianceVerified).HasColumnName("minsa_compliance_verified");
         entity.Property(manifest => manifest.GeneratedAt).HasColumnName("sealed_at");
         entity.Ignore(manifest => manifest.Events);
+
+        var eventsComparer = new ValueComparer<List<CustodyEvent>>(
+            (c1, c2) => c1 == null && c2 == null || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
         entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
             .HasColumnType("json")
             .HasConversion(
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>());
+                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>(),
+                eventsComparer);
     }
 }

@@ -3,6 +3,7 @@ using MedicalSmartBox.API.Custody.Domain.Model.Aggregates;
 using MedicalSmartBox.API.Custody.Domain.Model.Events;
 using MedicalSmartBox.API.Custody.Domain.Model.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MedicalSmartBox.API.Custody.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
@@ -33,20 +34,33 @@ public sealed class CustodyTransferConfiguration : IEntityTypeConfiguration<Cust
         // Public read-only views expose fields stored as JSON; they are not separate entities.
         entity.Ignore(transfer => transfer.Events);
         entity.Ignore(transfer => transfer.TemperatureReadings);
+
+        var eventsComparer = new ValueComparer<List<CustodyEvent>>(
+            (c1, c2) => c1 == null && c2 == null || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
+        var temperatureReadingsComparer = new ValueComparer<List<CustodyTemperatureReading>>(
+            (c1, c2) => c1 == null && c2 == null || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
         entity.Property<List<CustodyEvent>>("_events")
             .HasField("_events")
             .HasColumnName("events_json")
             .HasColumnType("json")
             .HasConversion(
                 events => JsonSerializer.Serialize(events, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>());
+                json => JsonSerializer.Deserialize<List<CustodyEvent>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyEvent>(),
+                eventsComparer);
         entity.Property<List<CustodyTemperatureReading>>("_temperatureReadings")
             .HasField("_temperatureReadings")
             .HasColumnName("temperature_readings_json")
             .HasColumnType("json")
             .HasConversion(
                 readings => JsonSerializer.Serialize(readings, (JsonSerializerOptions?)null),
-                json => JsonSerializer.Deserialize<List<CustodyTemperatureReading>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyTemperatureReading>());
+                json => JsonSerializer.Deserialize<List<CustodyTemperatureReading>>(json, (JsonSerializerOptions?)null) ?? new List<CustodyTemperatureReading>(),
+                temperatureReadingsComparer);
 
         entity.OwnsOne(transfer => transfer.OtpToken, otp =>
         {
